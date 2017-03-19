@@ -5,7 +5,7 @@ class Office(Room):
     child class
     """
 
-    def __init__(self, room_name, room_type="office"):
+    def __init__(self, room_name, room_type="office",room_capacity=6):
         """
 
         :param room_name:
@@ -14,6 +14,7 @@ class Office(Room):
 
         self.room_name = room_name
         self.room_type = room_type
+        self.room_capacity = room_capacity
 
 
     def create_room(self):
@@ -21,4 +22,4 @@ class Office(Room):
 
         :return:
         """
-        pass
+        return "create_room() was called successfully from class Office"

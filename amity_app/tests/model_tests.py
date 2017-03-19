@@ -95,7 +95,7 @@ class TestModels(unittest.TestCase):
     # Method tests if object is of class Office
     def test_isInstance_of_Office_class(self):
         """
-        test_isInstance_of_Office_clas():
+        test_isInstance_of_Office_class():
         Method uses assertIsInstance() to check whether
         given object belongs to class Office
 
@@ -306,6 +306,127 @@ class TestModels(unittest.TestCase):
         """
 
         self.assertEqual(self.check_abstract_class_instantiation(Room), False)
+    
+    # test calling add_person() from class Staff     
+    def test_callable_add_person_from_class_Staff(self):
+        """
+        test_callable_add_person_from_class_Staff():
+        Method checks whether add_person() from class
+        Staff is called properly
+        """
+        self.assertEqual(self.staff_object.add_person(), 
+                         "add_person() was called successfully from class Staff")   
+
+    # test calling add_person() from class Fellow     
+    def test_callable_add_person_from_class_Fellow(self):
+        """
+        test_callable_add_person_from_class_Fellow():
+        Method checks whether add_person() from class
+        Fellow is called properly
+        """
+        self.assertEqual(self.fellow_object.add_person(), 
+                         "add_person() was called successfully from class Fellow")
+                         
+    # test calling create_room() from class LivingSpace     
+    def test_callable_create_room_from_class_LivingSpace(self):
+        """
+        test_callable_create_room_from_class_LivingSpace():
+        Method checks whether create_room() from class
+        LivingSpace is called properly
+        """
+        self.assertEqual(self.livingSpace_object.create_room(), 
+                         "create_room() was called successfully from class LivingSpace")     
+
+    # test calling create_room() from class Office     
+    def test_callable_create_room_from_class_Office(self):
+        """
+        test_callable_create_room_from_class_Office():
+        Method checks whether create_room() from class
+        Office is called properly
+        """
+        self.assertEqual(self.office_object.create_room(), 
+                         "create_room() was called successfully from class Office")  
+
+    # test calling reallocate_person() from class Amity     
+    def test_callable_reallocate_person_from_class_Amity(self):
+        """
+        test_callable_reallocate_person_from_class_Amity():
+        Method checks whether reallocate_person() from class
+        Amity is called properly
+        """
+        self.assertEqual(self.amity_object.reallocate_person("Ben", "valhalla"), 
+                         "Person is: Ben and new room name is: valhalla") 
+
+    # test calling load_people() from class Amity     
+    def test_callable_load_people_from_class_Amity(self):
+        """
+        test_callable_load_people_from_class_Amity():
+        Method checks whether load_people() from class
+        Amity is called properly
+        """
+        self.assertEqual(self.amity_object.load_people(), 
+                         "load_people() was called successfully") 
+
+    # test calling print_allocations() from class Amity     
+    def test_callable_print_allocations_from_class_Amity(self):
+        """
+        test_callable_print_allocations_from_class_Amity():
+        Method checks whether print_allocations() from class
+        Amity is called properly
+        """
+        self.assertEqual(self.amity_object.print_allocations(), 
+                         "print_allocations() was called successfully")  
+
+    # test calling print_unallocated() from class Amity     
+    def test_callable_print_unallocated_from_class_Amity(self):
+        """
+        test_callable_print_unallocated_from_class_Amity():
+        Method checks whether print_unallocated() from class
+        Amity is called properly
+        """
+        self.assertEqual(self.amity_object.print_unallocated(), 
+                         "print_unallocated() was called successfully")  
+
+    # test calling print_room() from class Amity     
+    def test_callable_print_room_from_class_Amity(self):
+        """
+        test_callable_print_room_from_class_Amity():
+        Method checks whether print_room() from class
+        Amity is called properly
+        """
+        self.assertEqual(self.amity_object.print_room("Krypton"), 
+                         "print_room() was called successfully with arg Krypton")  
+
+    # test calling save_state() from class Amity     
+    def test_callable_save_state_from_class_Amity(self):
+        """
+        test_callable_save_state_from_class_Amity():
+        Method checks whether save_state() from class
+        Amity is called properly
+        """
+        self.assertEqual(self.amity_object.save_state("mydb"), 
+                         "save_state() was called successfully with arg mydb")  
+ 
+    # test calling load_state() from class Amity     
+    def test_callable_load_state_from_class_Amity(self):
+        """
+        test_callable_load_state_from_class_Amity():
+        Method checks whether load_state() from class
+        Amity is called properly
+        """
+        self.assertEqual(self.amity_object.load_state("source_db"), 
+                         "load_state() was called successfully with arg source_db")                        
+                         
+                         
+                         
+  # &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+        # self.amity_object = Amity()
+        # self.fellow_object = Fellow("Ben", "fellow")
+        # self.livingSpace_object = LivingSpace("mara")
+        # self.office_object = Office("samburu")
+        # self.staff_object = Staff("Sally", "staff")
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
+        
 
 
 if __name__ == "__main__":

@@ -1,6 +1,7 @@
 from amity_app.classes.person import Person
 
 
+
 class Staff(Person):
     """
     inherits from Person
@@ -18,4 +19,5 @@ class Staff(Person):
         self.accommodation = accommodation
 
     def add_person(self):
-        pass
+        return "add_person() was called successfully from class Staff"
+        

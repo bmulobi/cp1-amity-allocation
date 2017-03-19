@@ -7,6 +7,7 @@ class Amity(object):
     base class
     """
 
+    
     def __init__(self):
         """
 
@@ -28,8 +29,7 @@ class Amity(object):
         :param new_room_name:
         :return:
         """
-        pass
-
+        return ("Person is: "+person_identifier+" and new room name is: "+new_room_name)
 
     def load_people(self):
         """
@@ -38,7 +38,7 @@ class Amity(object):
         :return:
         """
 
-        pass
+        return "load_people() was called successfully"
 
     def print_allocations(self, allocated_file_name=""):
         """
@@ -47,7 +47,7 @@ class Amity(object):
         :return:
         """
 
-        pass
+        return "print_allocations() was called successfully"
 
     def print_unallocated(self, unallocated_file_name=""):
         """
@@ -56,7 +56,7 @@ class Amity(object):
         :return:
         """
 
-        pass
+        return "print_unallocated() was called successfully"
 
     def print_room(self, room_name):
         """
@@ -65,7 +65,7 @@ class Amity(object):
         :return:
         """
 
-        pass
+        return "print_room() was called successfully with arg "+room_name
 
     def save_state(self, destination_db=""):
         """
@@ -73,7 +73,7 @@ class Amity(object):
         :param destination_db:
         :return:
         """
-        pass
+        return "save_state() was called successfully with arg "+destination_db
 
     def load_state(self, source_db):
         """
@@ -82,4 +82,4 @@ class Amity(object):
         :return:
         """
 
-        pass
+        return "load_state() was called successfully with arg "+source_db
