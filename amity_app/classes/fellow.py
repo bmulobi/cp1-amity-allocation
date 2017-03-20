@@ -12,4 +12,4 @@ class Fellow(Person):
         self.accommodation = accommodation
 
     def add_person(self):
-        pass
+        return "add_person() was called successfully from class Fellow"
