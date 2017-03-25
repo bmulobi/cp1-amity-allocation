@@ -6,10 +6,10 @@ class Fellow(Person):
     inherits from Person
     """
 
-    def __init__(self, name, role, accommodation="N"):
-        self.name = name
+    def __init__(self, role="FELLOW", accommodation="N"):
+        self.name = ""
         self.person_role = role
         self.accommodation = accommodation
 
-    def add_person(self):
-        return "add_person() was called successfully from class Fellow"
+    def add_person(self, name):
+        return person_id, name + " was added successfully"
