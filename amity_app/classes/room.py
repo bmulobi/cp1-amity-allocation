@@ -8,14 +8,14 @@ class Room(metaclass=ABCMeta):
 
     #__metaclass__ = ABCMeta
 
-    def __init__(self, room_name, room_type=""):
+    def __init__(self):
         """
 
         :param room_name:
         """
 
-        self.room_name = room_name
-        self.room_type = room_type
+        self.room_name = ""
+        
 
     @abstractmethod
     def create_room(self):

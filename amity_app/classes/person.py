@@ -10,14 +10,11 @@ class Person(metaclass=ABCMeta):
 
     person_identifier = 0
 
-    def __init__(self, name, role, accommodation="N"):
-        self.name = name
-        self.person_role = role
-        self.accommodation = accommodation
+    def __init__(self):
+        self.name = ""
+        self.person_role = ""
+        self.person_id = ""
 
     @abstractmethod
     def add_person(self):
         pass
-
-
-
