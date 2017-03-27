@@ -14,9 +14,7 @@ from amity_app.classes.staff import Staff
 
 class TestAmity(TestCase):
     """
-
     """
-
     def setUp(self):
         """
         Method instantiates class objects
@@ -28,6 +26,7 @@ class TestAmity(TestCase):
         self.living_space_object = LivingSpace()
         self.office_object = Office()
         self.staff_object = Staff()
+        self.fellow_object = Fellow()
 
     # Method tests if object is of class Amity
     def test_isinstance_of_amity_class(self):
@@ -61,7 +60,7 @@ class TestAmity(TestCase):
     # test calling reallocate_person() from class Amity
     def test_calls_reallocate_person_from_class_amity(self):
         """
-        test_callable_reallocate_person_from_class_Amity():
+        test_calls_reallocate_person_from_class_Amity():
         Method checks whether reallocate_person() from class
         Amity is called properly
         """
@@ -190,8 +189,14 @@ class TestAmity(TestCase):
         test_reallocates_person()
         :return:
         """
-        self.assertEqual(self.amity_object.reallocate_person(1, "Krypton"),
-                         "Person with identifier 1 was reallocated to Krypton",
+        Amity.rooms_list = [{}, {}]
+        Amity.people_list = [{}, {}]
+
+        self.living_space_object.create_room("TestRoom")
+        person_id, msg = self.fellow_object.add_person("Test Person", "Y")
+        self.living_space_object.create_room("TestRoomTwo")
+        self.assertEqual(self.amity_object.reallocate_person(person_id, "TestRoomTwo"),
+                         "Person with identifier "+person_id+" was reallocated to TestRoomTwo",
                          msg="Failed to reallocate person")
 
     def test_confirms_availability_of_space_in_amity(self):
@@ -207,28 +212,79 @@ class TestAmity(TestCase):
         self.assertTrue(self.amity_object.confirm_availability_of_space_in_amity(),
                         msg="Could not confirm availability of space")
 
+    # tests if load people is working
+    def test_it_loads_people(self):
+        """
+        test_it_loads_people():
+        NOTE: in order for this test method to work properly
+              you must navigate to the project tests
+              folder before running the nosetests -v command
+        Takes names from text file and allocates people
+        rooms based on their role and availability of space
+        """
+        error_msg = ""
+
+        try:
+            file_object = open("../text_files/test_file.txt", "w")
+            try:
+                file_object.write("BEN MULOBI FELLOW Y\n\n"+
+                                  "ROGER TARACHA STAFF\n\n")
+            finally:
+                file_object.close()
+
+        except IOError as e:
+            error_msg = str(e)
+            error_msg += " - run this test from project tests directory"
+
+        Amity.rooms_list = [{}, {}]
+        Amity.people_list = [{}, {}]
+        Amity.person_identifier = 0
+        self.living_space_object.create_room("Atomic")
+        self.office_object.create_room("Neutronic")
+        self.amity_object.load_people()
+
+        self.assertIn("f-1", Amity.rooms_list[0]["Atomic"])
+        self.assertIn("f-1", Amity.rooms_list[1]["Neutronic"])
+        self.assertIn("s-2", Amity.rooms_list[1]["Neutronic"])
+
     def test_confirms_existence_of_allocations(self):
         """
         test_confirms_existence_of_allocations():
         :return:
         """
-        self.is_empty = True
-        self.assertEqual(self.amity_object.confirm_existence_of_allocations(), False)
+        Amity.rooms_list = [{}, {}]
+        Amity.people_list = [{}, {}]
+        self.assertFalse(self.amity_object.confirm_existence_of_allocations(),
+                         msg="Could not confirm existence of allocations")
+        self.office_object.create_room("Test Room")
+        person_id, msg = self.staff_object.add_person("Test Person")
+        self.assertTrue(self.amity_object.confirm_existence_of_allocations(),
+                        msg="Could not confirm existence of allocations")
 
     def test_it_prints_allocations(self):
         """
         test_it_prints_allocations():
         :return:
         """
-        self.assertEqual(self.amity_object.print_allocations(), True)
+        Amity.rooms_list = [{}, {}]
+        Amity.people_list = [{}, {}]
+        self.office_object.create_room("TestRoom")
+        self.staff_object.add_person("Test Person")
+        self.assertIn(self.amity_object.print_allocations(),
+                            "TestRoom\n\n-----------------------\nTest Person")
+        self.amity_object.print_allocations("test_file.txt")
+        self.assertContains("text_files/test_file.txt",
+                            "TestRoom\n\n-----------------------\nTest Person")
 
-    def test_it_confirms_existence_of_unallocated(self):
+
+    def test_it_confirms_existence_of_unallocated_people(self):
         """
-        test_it_confirms_existence_of_unallocated():
+        test_it_confirms_existence_of_unallocated_people():
         :return:
         """
 
-        self.assertEqual(self.amity_object.confirm_existence_of_unallocated(), True)
+        self.assertEqual(self.amity_object.confirm_existence_of_unallocated(),
+                         True)
 
     def test_prints_unallocated(self):
         """
@@ -243,5 +299,5 @@ class TestAmity(TestCase):
         test_prints_room():
         :return:
         """
-
-        self.assertEqual(self.amity_object.print_room("Krypton"), True)
+        pass
+        # self.assertEqual(self.amity_object.print_room("Krypton"), )
