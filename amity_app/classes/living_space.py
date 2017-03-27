@@ -1,5 +1,5 @@
 from amity_app.classes.room import Room
-
+from amity_app.classes.amity import Amity
 
 class LivingSpace(Room):
     """
@@ -7,7 +7,7 @@ class LivingSpace(Room):
     """
 
 
-    def __init__(self, room_type="living_space", room_capacity=4):
+    def __init__(self):
 
         """
 
@@ -15,9 +15,10 @@ class LivingSpace(Room):
         """
 
         self.room_name = ""
-        self.room_type = room_type
-        self.room_capacity = room_capacity
+        self.room_type = "living_space"
+        self.room_capacity = 4
 
     def create_room(self, room_name):
+        Amity.rooms_list[0][room_name] = []
 
         return room_name + " was created successfully"
