@@ -1,4 +1,5 @@
 from amity_app.classes.person import Person
+from amity_app.classes.amity import Amity
 
 class Staff(Person):
     """
@@ -12,7 +13,7 @@ class Staff(Person):
         :type name: str
         :type role: str
         """
-        
+
         self.name = ""
         self.person_role = role
         self.person_id = ""
