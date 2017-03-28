@@ -6,7 +6,7 @@ class Room(metaclass=ABCMeta):
     base class
     """
 
-    #__metaclass__ = ABCMeta
+    # __metaclass__ = ABCMeta
 
     def __init__(self):
         """
@@ -15,7 +15,6 @@ class Room(metaclass=ABCMeta):
         """
 
         self.room_name = ""
-        
 
     @abstractmethod
     def create_room(self):

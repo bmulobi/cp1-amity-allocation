@@ -371,6 +371,13 @@ class Amity(object):
 
         return "print_unallocated() was called successfully"
 
+    def confirm_existence_of_allocations_for_particular_room(self, room_name):
+        """
+
+        :return:
+        """
+        pass
+
     def print_room(self, room_name):
         """
 
