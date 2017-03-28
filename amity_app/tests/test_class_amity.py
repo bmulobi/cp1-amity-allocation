@@ -15,6 +15,7 @@ from amity_app.classes.staff import Staff
 class TestAmity(TestCase):
     """
     """
+
     def setUp(self):
         """
         Method instantiates class objects
@@ -196,7 +197,7 @@ class TestAmity(TestCase):
         person_id, msg = self.fellow_object.add_person("Test Person", "Y")
         self.living_space_object.create_room("TestRoomTwo")
         self.assertEqual(self.amity_object.reallocate_person(person_id, "TestRoomTwo"),
-                         "Person with identifier "+person_id+" was reallocated to TestRoomTwo",
+                         "Person with identifier " + person_id + " was reallocated to TestRoomTwo",
                          msg="Failed to reallocate person")
 
     def test_confirms_availability_of_space_in_amity(self):
@@ -227,8 +228,8 @@ class TestAmity(TestCase):
         try:
             file_object = open("../text_files/test_file.txt", "w")
             try:
-                file_object.write("BEN MULOBI FELLOW Y\n\n"+
-                                  "ROGER TARACHA STAFF\n\n")
+                file_object.write("BEN MULOBI FELLOW Y\n" +
+                                  "ROGER TARACHA STAFF\n")
             finally:
                 file_object.close()
 
@@ -269,13 +270,32 @@ class TestAmity(TestCase):
         Amity.rooms_list = [{}, {}]
         Amity.people_list = [{}, {}]
         self.office_object.create_room("TestRoom")
-        self.staff_object.add_person("Test Person")
-        self.assertIn(self.amity_object.print_allocations(),
-                            "TestRoom\n\n-----------------------\nTest Person")
-        self.amity_object.print_allocations("test_file.txt")
-        self.assertContains("text_files/test_file.txt",
-                            "TestRoom\n\n-----------------------\nTest Person")
+        for i in range(7):
+            name = "Test Person" + str(i)
+            self.staff_object.add_person(name)
+        self.assertIn("TestRoom\n" and
+                      "-------------------------------------\n" and
+                      "Test Person1, Test Person2, Test Person3, " +
+                      "Test Person4, Test Person5, Test Person6\n",
+                      self.amity_object.print_allocations()
+                      )
 
+        self.amity_object.print_allocations("../text_files/allocations_file.txt")
+
+        try:
+            file_object = open("../text_files/allocations_file.txt", "r")
+            try:
+                lines_list = file_object.readlines()
+
+            finally:
+                file_object.close()
+
+        except IOError as e:
+            print(str(e))
+        self.assertIn(lines_list, "TestRoom\n" and
+                      "-------------------------------------\n" and
+                      "Test Person1, Test Person2, Test Person3, " +
+                      "Test Person4, Test Person5, Test Person6\n")
 
     def test_it_confirms_existence_of_unallocated_people(self):
         """
