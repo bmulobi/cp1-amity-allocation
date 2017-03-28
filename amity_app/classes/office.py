@@ -26,3 +26,4 @@ class Office(Room):
         self.room_name = name
         Amity.rooms_list[1][self.room_name] = []
         return "create_room() was called successfully from class Office"
+

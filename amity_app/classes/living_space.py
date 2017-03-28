@@ -19,6 +19,7 @@ class LivingSpace(Room):
         self.room_capacity = 4
 
     def create_room(self, room_name):
-        Amity.rooms_list[0][room_name] = []
+        self.room_name = room_name
+        Amity.rooms_list[0][self.room_name] = []
 
-        return room_name + " was created successfully"
+        return self.room_name + " was created successfully"
