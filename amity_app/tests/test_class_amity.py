@@ -8,6 +8,9 @@ from amity_app.classes.office import Office
 from amity_app.classes.room import Room
 from amity_app.classes.staff import Staff
 
+import sys
+from contextlib import contextmanager
+from io import StringIO
 
 # Class contains all the logic to run model tests on
 # the class definitions for the amity room allocation app
@@ -28,6 +31,17 @@ class TestAmity(TestCase):
         self.office_object = Office()
         self.staff_object = Staff()
         self.fellow_object = Fellow()
+
+    # helper method to check print() output
+    @contextmanager
+    def captured_output(self):
+        new_out, new_err = StringIO(), StringIO()
+        old_out, old_err = sys.stdout, sys.stderr
+        try:
+            sys.stdout, sys.stderr = new_out, new_err
+            yield sys.stdout, sys.stderr
+        finally:
+            sys.stdout, sys.stderr = old_out, old_err
 
     # Method tests if object is of class Amity
     def test_isinstance_of_amity_class(self):
@@ -72,7 +86,7 @@ class TestAmity(TestCase):
 
     def test_calls_load_people_from_class_amity(self):
         """
-        test_callable_load_people_from_class_Amity():
+        test_calls_load_people_from_class_Amity():
         Method checks whether load_people() from class
         Amity is called properly
         """
@@ -83,7 +97,7 @@ class TestAmity(TestCase):
 
     def test_calls_print_allocations_from_class_amity(self):
         """
-        test_callable_print_allocations_from_class_Amity():
+        test_calls_print_allocations_from_class_Amity():
         Method checks whether print_allocations() from class
         Amity is called properly
         """
@@ -94,7 +108,7 @@ class TestAmity(TestCase):
 
     def test_calls_print_unallocated_from_class_amity(self):
         """
-        test_callable_print_unallocated_from_class_Amity():
+        test_calls_print_unallocated_from_class_Amity():
         Method checks whether print_unallocated() from class
         Amity is called properly
         """
@@ -105,7 +119,7 @@ class TestAmity(TestCase):
 
     def test_calls_print_room_from_class_amity(self):
         """
-        test_callable_print_room_from_class_Amity():
+        test_calls_print_room_from_class_Amity():
         Method checks whether print_room() from class
         Amity is called properly
         """
@@ -116,7 +130,7 @@ class TestAmity(TestCase):
 
     def test_calls_save_state_from_class_amity(self):
         """
-        test_callable_save_state_from_class_Amity():
+        test_calls_save_state_from_class_Amity():
         Method checks whether save_state() from class
         Amity is called properly
         """
@@ -127,25 +141,25 @@ class TestAmity(TestCase):
 
     def test_calls_load_state_from_class_amity(self):
         """
-        test_callable_load_state_from_class_Amity():
+        test_calls_load_state_from_class_Amity():
         Method checks whether load_state() from class
         Amity is called properly
         """
         self.assertEqual(self.amity_object.load_state("source_db"),
                          "load_state() was called successfully with arg source_db")
 
-    def test_confirms_person_identifier(self):
+    def test_confirms_person_identifier_as_valid(self):
         """
-        test_confirms_person_identifier():
+        test_confirms_person_identifier_as_valid():
         :return:
         """
 
         self.assertTrue(self.amity_object.confirm_person_identifier(1000000000),
                         msg="Method should return true if identifier exists")
 
-    def test_confirms_room_name(self):
+    def test_confirms_room_name_as_valid(self):
         """
-        test_confirms_room_name():
+        test_confirms_room_name_as_valid():
         :return:
         """
 
@@ -161,6 +175,8 @@ class TestAmity(TestCase):
         :return:
         """
         self.office_object.create_room("Pentagon")
+        self.assertTrue(self.amity_object.confirm_specific_room_has_space("Pentagon"))
+
         for i in range(7):
             person_name = "John" + str(i)
             person_id, msg = self.staff_object.add_person(person_name)
@@ -248,9 +264,9 @@ class TestAmity(TestCase):
         self.assertIn("f-1", Amity.rooms_list[1]["Neutronic"])
         self.assertIn("s-2", Amity.rooms_list[1]["Neutronic"])
 
-    def test_confirms_existence_of_allocations(self):
+    def test_confirms_existence_of_allocations_in_amity(self):
         """
-        test_confirms_existence_of_allocations():
+        test_confirms_existence_of_allocations_in_amity():
         :return:
         """
         Amity.rooms_list = [{}, {}]
@@ -302,22 +318,118 @@ class TestAmity(TestCase):
         test_it_confirms_existence_of_unallocated_people():
         :return:
         """
+        Amity.rooms_list = [{}, {}]
+        Amity.people_list = [{}, {}]
 
-        self.assertEqual(self.amity_object.confirm_existence_of_unallocated(),
-                         True)
+        self.assertFalse(self.amity_object.confirm_existence_of_unallocated())
 
-    def test_prints_unallocated(self):
+        for i in range(7):
+            name = "Test Person" + str(i)
+            self.staff_object.add_person(name)
+
+        self.assertTrue(self.amity_object.confirm_existence_of_unallocated())
+
+    def test_prints_unallocated_to_screen(self):
         """
         test_prints_unallocated():
         :return:
         """
-        unallocated_people_list = ["Ben", "John", "Sharon"]
-        self.assertIn("Ben", self.amity_object.print_unallocated())
+        Amity.rooms_list = [{}, {}]
+        Amity.people_list = [{}, {}]
 
-    def test_prints_room(self):
+        for i in range(7):
+            name = "Test Person" + str(i)
+            self.staff_object.add_person(name)
+
+        with self.captured_output() as (out, err):
+            self.amity_object.print_unallocated()
+
+        output = out.getvalue().strip()
+        self.assertEqual(output, "Test Person1, Test Person2, Test Person3," +
+                                 " Test Person4, Test Person5, Test Person6")
+
+    def test_prints_unallocated_to_file(self):
         """
-        test_prints_room():
+        test_prints_unallocated_to_file():
+        :return:
+        """
+        Amity.rooms_list = [{}, {}]
+        Amity.people_list = [{}, {}]
+
+        for i in range(3):
+            name = "Staff Person" + str(i)
+            self.staff_object.add_person(name)
+        for i in range(3):
+            name = "Fellow Person" + str(i)
+            self.fellow_object.add_person(name)
+
+        self.amity_object.print_unallocated("../text_files/unallocated_file.txt")
+
+        try:
+            file_object = open("../text_files/unallocated_file.txt", "r")
+
+            try:
+                lines_list = file_object.readlines()
+
+            finally:
+                file_object.close()
+
+        except IOError as e:
+            print(str(e))
+        self.assertIn("Staff Person1\nStaff Person2\nFellow Person1\nFellow Person2\n", lines_list)
+
+    def test_it_confirms_specific_room_has_allocations(self):
+        """
+        test_it_confirms_specific_room_has_allocations():
+        :return:
+        """
+        Amity.rooms_list = [{}, {}]
+        Amity.people_list = [{}, {}]
+
+        self.office_object.create_room("Valhalla")
+
+        self.assertFalse(self.amity_object.confirm_existence_of_allocations_for_particular_room("Valhalla"))
+
+        self.staff_object.add_person("Code Dragon")
+        self.fellow_object.add_person("Bau Meister")
+
+        self.assertTrue(self.amity_object.confirm_existence_of_allocations_for_particular_room("Valhalla"))
+
+    def test_it_prints_room(self):
+        """
+        test_it_prints_room():
+
+        :return:
+        """
+        Amity.rooms_list = [{}, {}]
+        Amity.people_list = [{}, {}]
+
+        self.office_object.create_room("Krypton")
+        for i in range(4):
+            name = "Test Person" + str(i)
+            self.staff_object.add_person(name)
+
+        with self.captured_output() as (out, err):
+            self.amity_object.print_room("Krypton")
+
+        output = out.getvalue().strip()
+        self.assertEqual(output, "Test Person1\nTest Person2\nTest Person3\n")
+
+
+
+
+    def test_it_saves_state(self):
+        """
+        test_it_saves_state():
+
         :return:
         """
         pass
-        # self.assertEqual(self.amity_object.print_room("Krypton"), )
+
+    def test_it_loads_state(self):
+        """
+        test_it_loads_state():
+
+        :return:
+        """
+        pass
