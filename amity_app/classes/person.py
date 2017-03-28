@@ -16,5 +16,5 @@ class Person(metaclass=ABCMeta):
         self.person_id = ""
 
     @abstractmethod
-    def add_person(self):
+    def add_person(self, name, wants_accommodation="N"):
         pass
