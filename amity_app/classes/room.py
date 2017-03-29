@@ -3,24 +3,23 @@ from abc import ABCMeta, abstractmethod
 
 class Room(metaclass=ABCMeta):
     """
-    base class
+    base class for class LivingSpace
+    and class Office
     """
 
     # __metaclass__ = ABCMeta
 
     def __init__(self):
         """
-
-        :param room_name:
+        constructor to initialise room name
         """
 
         self.room_name = ""
 
     @abstractmethod
+    # creates room (either office or living space)
     def create_room(self):
         """
-
-        :return:
+        abstract method to be inplemented in child classes
         """
-
         pass

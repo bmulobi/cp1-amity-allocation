@@ -26,7 +26,11 @@ class Fellow(Person):
 
         self.person_id = "f-" + str(Amity.person_identifier)
         self.name = name
-        Amity.people_list[0][self.person_id] = self.name
+        Amity.people_list[0][self.person_id] = [self.name]
+        if self.accommodation == "Y":
+            Amity.people_list[0][self.person_id].append("Y")
+        else:
+            Amity.people_list[0][self.person_id].append("N")
 
         if self.amity_object.confirm_availability_of_space_in_amity():
             offices_with_space_list, living_spaces_with_space_list = \
