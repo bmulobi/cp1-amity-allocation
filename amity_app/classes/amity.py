@@ -1,5 +1,6 @@
 # This class will contain most of the functionality
 # required in the amity room allocation application
+import os
 
 
 class Amity(object):
@@ -394,6 +395,16 @@ class Amity(object):
         :return:
         """
         return "save_state() was called successfully with arg " + destination_db
+
+    def confirm_existence_of_db_file(self, file_name):
+        """
+
+        :return:
+        """
+        if os.path.isfile(file_name):
+            return True
+        return False
+
 
     def load_state(self, source_db):
         """
