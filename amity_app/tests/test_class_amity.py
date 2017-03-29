@@ -13,11 +13,13 @@ from io import StringIO
 
 import sqlite3
 
-# Class contains all the logic to run model tests on
-# the class definitions for the amity room allocation app
+# Class is used to test class Amity
+
 
 class TestAmity(TestCase):
     """
+       class contains logic to test all functionalities
+       of the class Amity
     """
 
     def setUp(self):
@@ -36,6 +38,12 @@ class TestAmity(TestCase):
     # helper method to check print() output
     @contextmanager
     def captured_output(self):
+        """
+        method is used to capture the output
+        of print() statements from other methods
+        for purposes of testing with assert statements
+
+        """
         new_out, new_err = StringIO(), StringIO()
         old_out, old_err = sys.stdout, sys.stderr
         try:
@@ -135,7 +143,7 @@ class TestAmity(TestCase):
         Method checks whether save_state() from class
         Amity is called properly
         """
-        self.assertEqual(self.amity_object.save_state("mydb"),
+        self.assertEqual(self.amity_object.save_state("mydb.db"),
                          "save_state() was called successfully with arg mydb")
 
         # test calling load_state() from class Amity
@@ -537,11 +545,21 @@ class TestAmity(TestCase):
                       results_list,
                       msg="Could not verify database fetch results")
 
-    def test_it_confirms_existence_of_db_file(self):
+    def test_it_confirms_existence_of_file(self):
         """
-
+        test_it_confirms_existence_of_db_file():
         :return:
         """
+        self.assertEqual(self.amity_object.load_state("fake_file.db"),
+                         "File does not exist", "Could not find file")
+
+    def test_load_state_confirms_file_extension(self):
+        """
+        test_load_state_confirms_file_extension():
+        :return:
+        """
+        self.assertEqual(self.amity_object.load_state("my_file.txt"),
+                         "File extension must be .db", "Not a database file")
 
     def test_it_loads_state(self):
         """
