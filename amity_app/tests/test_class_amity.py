@@ -1,16 +1,17 @@
 from unittest import TestCase
 
-from amity_app.classes.person import Person
 from amity_app.classes.amity import Amity
 from amity_app.classes.fellow import Fellow
 from amity_app.classes.living_space import LivingSpace
 from amity_app.classes.office import Office
-from amity_app.classes.room import Room
 from amity_app.classes.staff import Staff
 
+import os
 import sys
 from contextlib import contextmanager
 from io import StringIO
+
+import sqlite3
 
 # Class contains all the logic to run model tests on
 # the class definitions for the amity room allocation app
@@ -415,16 +416,132 @@ class TestAmity(TestCase):
         output = out.getvalue().strip()
         self.assertEqual(output, "Test Person1\nTest Person2\nTest Person3\n")
 
-
-
-
-    def test_it_saves_state(self):
+    def test_it_saves_state_to_default_db(self):
         """
-        test_it_saves_state():
+        test_it_saves_state_to_default_db():
 
         :return:
         """
-        pass
+        if os.path.isfile("amity.db"):
+            os.remove("amity.db")
+
+        Amity.rooms_list = [{}, {}]
+        Amity.people_list = [{}, {}]
+
+        self.office_object.create_room("Mara")
+        self.living_space_object.create_room("Serengeti")
+
+        self.staff_object.add_person("Josh Jebs")
+        self.fellow_object.add_person("Sarah Munene", "Y")
+
+        self.amity_object.save_state()
+
+        results_list = []
+
+        try:
+            connection = sqlite3.connect("amity.db")
+            connection.row_factory = sqlite3.Row
+            cursor = connection.cursor()
+
+            cursor.execute("SELECT * FROM tbl_people")
+            connection.commit()
+            results = cursor.fetchall()
+
+            for row in results:
+                results_list.append(results["person_iname"])
+                results_list.append(results["person_identifier"])
+                results_list.append(results["accommodation"])
+
+            cursor.execute("SELECT * FROM tbl_rooms")
+            connection.commit()
+            results = cursor.fetchall()
+
+            for row in results:
+                results_list.append(results["room_name"])
+                results_list.append(results["room_type"])
+
+            cursor.execute("SELECT * FROM tbl_allocations")
+            connection.commit()
+            results = cursor.fetchall()
+
+            for row in results:
+                results_list.append(results["room_name"])
+                results_list.append(results["person_id"])
+
+        except sqlite3.Error as e:
+            print("db access error - ", str(e))
+
+        self.assertIn("Mara" and "Serengeti" and "Josh Jebs"
+                      and "Sarah Munene" and "Y" and "s-1" and "f-2",
+                      results_list,
+                      msg="Could not verify database fetch results")
+
+    def test_it_saves_state_to_specified_db(self):
+        """
+        test_it_saves_state_to_specified_db():
+
+        :return:
+        """
+        if os.path.isfile("specified.db"):
+            os.remove("specified.db")
+
+        Amity.rooms_list = [{}, {}]
+        Amity.people_list = [{}, {}]
+
+        self.office_object.create_room("Mara")
+        self.living_space_object.create_room("Serengeti")
+
+        self.staff_object.add_person("Josh Jebs")
+        self.fellow_object.add_person("Sarah Munene", "Y")
+
+        self.amity_object.save_state("specified")
+
+        results_list = []
+        db_name = "specified." + "db"
+
+        try:
+            connection = sqlite3.connect(db_name)
+            connection.row_factory = sqlite3.Row
+            cursor = connection.cursor()
+
+            cursor.execute("SELECT * FROM tbl_people")
+            connection.commit()
+            results = cursor.fetchall()
+
+            for row in results:
+                results_list.append(results["person_name"])
+                results_list.append(results["person_identifier"])
+                results_list.append(results["accommodation"])
+
+            cursor.execute("SELECT * FROM tbl_rooms")
+            connection.commit()
+            results = cursor.fetchall()
+
+            for row in results:
+                results_list.append(results["room_name"])
+                results_list.append(results["room_type"])
+
+            cursor.execute("SELECT * FROM tbl_allocations")
+            connection.commit()
+            results = cursor.fetchall()
+
+            for row in results:
+                results_list.append(results["room_name"])
+                results_list.append(results["person_id"])
+
+        except sqlite3.Error as e:
+            print("db access error - ", str(e))
+
+        self.assertIn("Mara" and "Serengeti" and "Josh Jebs"
+                      and "Sarah Munene" and "Y" and "s-1" and "f-2",
+                      results_list,
+                      msg="Could not verify database fetch results")
+
+    def test_it_confirms_existence_of_db_file(self):
+        """
+
+        :return:
+        """
 
     def test_it_loads_state(self):
         """
@@ -432,4 +549,78 @@ class TestAmity(TestCase):
 
         :return:
         """
-        pass
+        if os.path.isfile("test.db"):
+            os.remove("test.db")
+
+        try:
+            connection = sqlite3.connect("test.db")
+            connection.row_factory = sqlite3.Row
+            cursor = connection.cursor()
+
+            cursor.execute("""CREATE TABLE tbl_people (id INTEGER PRIMARY KEY NOT NULL,
+                           person_name TEXT NOT NULL, person_identifier TEXT NOT NULL,
+                           accommodation TEXT NOT NULL)""")
+            cursor.execute("""CREATE TABLE tbl_rooms (id INTEGER PRIMARY KEY NOT NULL,
+                           room_name TEXT NOT NULL, room_type TEXT NOT NULL)""")
+            cursor.execute("""CREATE TABLE tbl_allocations (id INTEGER PRIMARY KEY NOT NULL,
+                           room_name TEXT NOT NULL, person_id TEXT NO NULL)""")
+            connection.commit()
+
+            rows = [
+                    ("Big Ben", "f-1", "Y"),
+                    ("Sally Molly", "s-2", "N"),
+                    ("Harry Porter", "f-3", "N"),
+                    ("Jim Harrigan", "s-4", "N")
+                   ]
+
+            cursor.executemany("""INSERT INTO tbl_people (person_name, person_identifier,
+                           accommodation) VALUES (?,?,?)""", rows)
+
+            rows = [
+                    ("Valhalla", "office"),
+                    ("Upstairs", "livingspace")
+                   ]
+            cursor.executemany("""INSERT INTO tbl_rooms (room_name, room_type) VALUES (?,?)""", rows)
+
+            rows = [
+                    ("Valhalla", "f-1"),
+                    ("Upstairs", "f-1"),
+                    ("Valhalla", "s-2"),
+                    ("Valhalla", "f-3"),
+                   ]
+
+            cursor.executemany("""INSERT INTO tbl_allocations (room_name, person_id) VALUES (?,?)""", rows)
+            connection.commit()
+
+        except sqlite3.Error as e:
+            print("db access error - ", str(e))
+
+        Amity.rooms_list = [{}, {}]
+        Amity.people_list = [{}, {}]
+
+        self.amity_object.load_state("test.db")
+
+        fellows_names = Amity.people_list[0].values()
+        self.assertIn("Big Ben" and "Harry Porter", fellows_names, msg="Name not found in dictionary")
+
+        staff_names = Amity.people_list[0].values()
+        self.assertIn("Sally Molly" and "Jim Harrigan", staff_names, msg="Name not found in dictionary")
+
+        livingspaces_names = Amity.rooms_list[0].keys()
+        self.assertIn("Upstairs", livingspaces_names, msg="Name not found in dictionary")
+
+        offices_names = Amity.rooms_list[1].keys()
+        self.assertIn("Valhalla", offices_names, msg="Name not found in dictionary")
+
+        offices_allocations_list = Amity.rooms_list[1].values()
+        self.assertIn("f-1" and "s-2" and "f-3", offices_allocations_list,
+                      msg="Could not find the identifiers in dictionary")
+
+        livingspaces_allocations_list = Amity.rooms_list[0].values()
+        self.assertIn("f-1", livingspaces_allocations_list,
+                      msg="Could not find the identifiers in dictionary")
+
+
+
+
+
