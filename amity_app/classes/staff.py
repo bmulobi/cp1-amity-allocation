@@ -31,7 +31,7 @@ class Staff(Person):
         Amity.person_identifier += 1
         self.person_id = "s-" + str(Amity.person_identifier)
         self.name = name
-        Amity.people_list[1][self.person_id] = self.name
+        Amity.people_list[1][self.person_id] = [self.name]
 
         if self.amity_object.confirm_availability_of_space_in_amity():
             offices_with_space_list, living_spaces_with_space_list = \
