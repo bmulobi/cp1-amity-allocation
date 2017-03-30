@@ -103,7 +103,6 @@ class TestAmity(TestCase):
                          "load_people() was called successfully")
 
         # test calling print_allocations() from class Amity
-
     def test_calls_print_allocations_from_class_amity(self):
         """
         test_calls_print_allocations_from_class_Amity():
@@ -248,10 +247,13 @@ class TestAmity(TestCase):
         Takes names from text file and allocates people
         rooms based on their role and availability of space
         """
-        error_msg = ""
+
+        file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        filename = os.path.join(file_path, 'text_files/test_file.txt')
 
         try:
-            file_object = open("../text_files/test_file.txt", "w")
+            error_msg = ""
+            file_object = open(filename, "w")
             try:
                 file_object.write("BEN MULOBI FELLOW Y\n" +
                                   "ROGER TARACHA STAFF\n")
@@ -365,6 +367,9 @@ class TestAmity(TestCase):
         Amity.rooms_list = [{}, {}]
         Amity.people_list = [{}, {}]
 
+        file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        filename = os.path.join(file_path, "text_files/unallocated_file.txt")
+
         for i in range(3):
             name = "Staff Person" + str(i)
             self.staff_object.add_person(name)
@@ -372,10 +377,10 @@ class TestAmity(TestCase):
             name = "Fellow Person" + str(i)
             self.fellow_object.add_person(name)
 
-        self.amity_object.print_unallocated("../text_files/unallocated_file.txt")
+        self.amity_object.print_unallocated(filename)
 
         try:
-            file_object = open("../text_files/unallocated_file.txt", "r")
+            file_object = open(filename, "r+")
 
             try:
                 lines_list = file_object.readlines()
