@@ -331,6 +331,7 @@ class TestAmity(TestCase):
             finally:
                 file_object.close()
 
+
         except IOError as e:
             print(str(e))
         self.assertIn("Staff Person1\nStaff Person2\nFellow Person1\nFellow Person2\n", lines_list)
