@@ -208,11 +208,16 @@ class Amity(object):
         :param file_path:
         :return:
         """
+
         if self.fetch_rooms_with_space() is not False:
             offices, living_spaces = self.fetch_rooms_with_space()
             if len(offices) or len(living_spaces):
+
+                file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+                filename = os.path.join(file_path, 'text_files/test_file.txt')
+
                 try:
-                    file_object = open("../text_files/test_file.txt", "r")
+                    file_object = open(filename, "r")
                     try:
                         lines_list = file_object.readlines()
                         print(lines_list)
@@ -369,6 +374,17 @@ class Amity(object):
         return False
 
     def print_unallocated(self, unallocated_file_name=""):
+        """
+
+        :param unallocated_file_name:
+        :return:
+        """
+        try:
+            file_object = open(unallocated_file_name, "w")
+            file_object.close()
+
+        except IOError as e:
+            print(str(e))
 
         return "print_unallocated() was called successfully"
 
