@@ -35,6 +35,7 @@ class Fellow(Person):
             return 0, ("Avoid any of the following characters in name: + ? . *  ^ $ "
                        "( ) \ [ ] { } | \  [0-9] ` ~ ! @ # % _ = ; : \" , < . > /")
 
+
         # ensure wants accommodation option is either (Y or N) or (y or n)
         if self.accommodation not in["Y", "N", "y", "n"]:
             return 0, "Accommodation option should be either (Y or N) or (y or n)"
