@@ -83,14 +83,19 @@ class TestAmity(TestCase):
 
         self.assertTrue(type(self.amity_object) is Amity)
 
-    # tests whether person identifier is verified
+    # tests whether person identifier is verified properly
     def test_confirms_person_identifier_as_valid(self):
         """
         test_confirms_person_identifier_as_valid():
 
         """
+        Amity.people_list = [{}, {}]
 
-        self.assertTrue(self.amity_object.confirm_person_identifier(1000000000),
+        self.assertFalse(self.amity_object.confirm_person_identifier("s-1"),
+                         msg="Method should return true if identifier exists")
+
+        person_identifier, message = self.staff_object.add_person("Test Person")
+        self.assertTrue(self.amity_object.confirm_person_identifier(person_identifier),
                         msg="Method should return true if identifier exists")
 
     # tests whether room name is verified
@@ -99,11 +104,15 @@ class TestAmity(TestCase):
         test_confirms_room_name_as_valid():
 
         """
-
-        self.assertFalse(self.amity_object.confirm_room_name("*&&^%$EWQ%*&(_)^^$^%"),
+        # clear rooms list
+        Amity.rooms_list = [{}, {}]
+        # verify room name when no rooms exist
+        self.assertFalse(self.amity_object.confirm_room_name("VALHALLA"),
                          msg="Method should return true if room name exists")
-        self.office_object.create_room("Dragons")
-        self.assertTrue(self.amity_object.confirm_room_name("Dragons"),
+        # create room VALHALLA
+        self.office_object.create_room("VALHALLA")
+        # verify room name after room creation
+        self.assertTrue(self.amity_object.confirm_room_name("VALHALLA"),
                         msg="Method should return true if room name exists")
 
     # tests whether given room is checked for space
@@ -112,20 +121,23 @@ class TestAmity(TestCase):
         test_confirms_specific_room_has_space():
 
         """
+        # empty rooms list
+        Amity.rooms_list = [{}, {}]
+        # create room pentagon
         self.office_object.create_room("Pentagon")
-        self.assertTrue(self.amity_object.confirm_specific_room_has_space("Pentagon"))
+        # test if it has space
+        self.assertTrue(self.amity_object.confirm_specific_room_has_space("PENTAGON"))
 
         for i in ["-a", "-b", "-c", "-d", "-e", "-f"]:
-            person_name = "John" + str(i)
-            person_id, msg = self.staff_object.add_person(person_name)
-            self.amity_object.reallocate_person(person_id, "Pentagon")
+            person_name = "John" + i
+            self.staff_object.add_person(person_name)
 
         person_id, msg = self.staff_object.add_person("Test Person")
-        self.assertEqual(self.amity_object.reallocate_person(person_id, "Pentagon"),
-                         "Pentagon is fully occupied",
-                         msg="Could not reallocate person to fully occupied room")
+        self.assertEqual(self.amity_object.reallocate_person(person_id, "PENTAGON"),
+                         "PENTAGON is fully occupied",
+                         msg="Expected output was not matched")
 
-        self.assertFalse(self.amity_object.confirm_specific_room_has_space("Pentagon"))
+        self.assertFalse(self.amity_object.confirm_specific_room_has_space("PENTAGON"))
 
     # tests whether allocations to staff are to offices only
     def test_does_not_reallocate_staff_to_livingspace(self):
@@ -137,7 +149,7 @@ class TestAmity(TestCase):
         self.living_space_object.create_room("Atom")
         person_id, msg = self.staff_object.add_person("Ben Man")
         self.assertEqual(self.amity_object.reallocate_person(person_id, "Atom"),
-                         "Cannot reallocate staff member to a living space",
+                         "Cannot reallocate a staff member to a living space",
                          msg="Could not reallocate staff member to living space")
 
     # tests whether reallocate_person() is reallocating
@@ -151,10 +163,10 @@ class TestAmity(TestCase):
         Amity.people_list = [{}, {}]
 
         self.living_space_object.create_room("TestRoom")
-        person_id, msg = self.fellow_object.add_person("Test Person", "Y")
+        person_id, msg = self.fellow_object.add_person("TEST PERSON", "Y")
         self.living_space_object.create_room("TestRoomTwo")
         self.assertEqual(self.amity_object.reallocate_person(person_id, "TestRoomTwo"),
-                         "Person with identifier " + person_id + " was reallocated to TestRoomTwo",
+                         "Person with identifier " + person_id + " and name TEST PERSON was reallocated to TestRoomTwo",
                          msg="Failed to reallocate person")
 
     # tests whether method confirms availability of space
