@@ -48,8 +48,7 @@ class Amity(object):
         if len(Amity.people_list[1]):
             self.staff_list = Amity.people_list[1].keys()
 
-        return person_identifier in self.fellows_list or\
-               person_identifier in self.staff_list
+        return person_identifier in self.fellows_list or person_identifier in self.staff_list
 
     def search_rooms_list(self):
         """

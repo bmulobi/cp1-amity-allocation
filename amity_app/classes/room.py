@@ -18,7 +18,7 @@ class Room(metaclass=ABCMeta):
 
     @abstractmethod
     # creates room (either office or living space)
-    def create_room(self):
+    def create_room(self, name):
         """
         abstract method to be inplemented in child classes
         """
