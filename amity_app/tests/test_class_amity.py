@@ -115,7 +115,7 @@ class TestAmity(TestCase):
         self.office_object.create_room("Pentagon")
         self.assertTrue(self.amity_object.confirm_specific_room_has_space("Pentagon"))
 
-        for i in range(7):
+        for i in ["-a", "-b", "-c", "-d", "-e", "-f"]:
             person_name = "John" + str(i)
             person_id, msg = self.staff_object.add_person(person_name)
             self.amity_object.reallocate_person(person_id, "Pentagon")
@@ -202,13 +202,13 @@ class TestAmity(TestCase):
         Amity.rooms_list = [{}, {}]
         Amity.people_list = [{}, {}]
         Amity.person_identifier = 0
-        self.living_space_object.create_room("Atomic")
-        self.office_object.create_room("Neutronic")
+        self.living_space_object.create_room("ATOMIC")
+        self.office_object.create_room("NEUTRONIC")
         self.amity_object.load_people()
 
-        self.assertIn("f-1", Amity.rooms_list[0]["Atomic"])
-        self.assertIn("f-1", Amity.rooms_list[1]["Neutronic"])
-        self.assertIn("s-2", Amity.rooms_list[1]["Neutronic"])
+        self.assertIn("f-1", Amity.rooms_list[0]["ATOMIC"])
+        self.assertIn("f-1", Amity.rooms_list[1]["NEUTRONIC"])
+        self.assertIn("s-2", Amity.rooms_list[1]["NEUTRONIC"])
 
     # tests whether method confirms existence of allocatioins
     def test_confirms_existence_of_allocations_in_amity(self):
@@ -234,7 +234,7 @@ class TestAmity(TestCase):
         Amity.rooms_list = [{}, {}]
         Amity.people_list = [{}, {}]
         self.office_object.create_room("TestRoom")
-        for i in range(7):
+        for i in ["-a", "-b", "-c", "-d", "-e", "-f"]:
             name = "Test Person" + str(i)
             self.staff_object.add_person(name)
         self.assertIn("TestRoom\n" and
@@ -330,7 +330,6 @@ class TestAmity(TestCase):
 
             finally:
                 file_object.close()
-
 
         except IOError as e:
             print(str(e))
