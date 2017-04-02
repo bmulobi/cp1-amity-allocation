@@ -164,7 +164,7 @@ class TestRoom(TestCase):
 
         self.office_object.create_room("Krypton")
 
-        self.assertIn("Krypton", Amity.rooms_list[1].keys())
+        self.assertIn("KRYPTON", Amity.rooms_list[1].keys())
 
     def test_create_room_in_livingspace(self):
         """
