@@ -35,7 +35,6 @@ class Fellow(Person):
             return 0, ("Avoid any of the following characters in name: + ? . *  ^ $ "
                        "( ) \ [ ] { } | \  [0-9] ` ~ ! @ # % _ = ; : \" , < . > /")
 
-
         # ensure wants accommodation option is either (Y or N) or (y or n)
         if self.accommodation not in["Y", "N", "y", "n"]:
             return 0, "Accommodation option should be either (Y or N) or (y or n)"
@@ -49,7 +48,7 @@ class Fellow(Person):
 
         # insert new person into fellows dictionary with id as key
         Amity.people_list[0][self.person_id] = [self.name]
-        self.return_message += self.name + " was added successfully as a fellow\n"
+        self.return_message += self.name + " with ID " + self.person_id + " was added successfully as a fellow\n"
         # append accommodation preferences to list
         if self.accommodation == "Y":
             Amity.people_list[0][self.person_id].append("Y")
