@@ -33,13 +33,18 @@ class Amity(object):
         self.matched_identifiers_list = []
         self.staff_identifiers_list = []
         self.fellows_identifiers_list = []
+        self.room_type = ""
+        self.livingspaces_with_allocations = []
+        self.offices_with_allocations = []
 
+    # confirms whether user has entered a valid identifier
     def confirm_person_identifier(self, person_identifier):
         """
-
-        :param person_identifier:
-        :return:
+        :param person_identifier: person's identifier
+        :return: True if identifier is valid
+                 False otherwise
         """
+
         if not len(Amity.people_list):
             return False
 
@@ -72,24 +77,30 @@ class Amity(object):
         :param new_room_name:
         :return:
         """
+        if not len(Amity.rooms_list[0]) and not len(Amity.rooms_list[1]):
+            return False
+
         self.offices_list, self.living_spaces_list = self.search_rooms_list()
 
-        return new_room_name in self.living_spaces_list or\
-               new_room_name in self.offices_list
+        return new_room_name in self.living_spaces_list or new_room_name in self.offices_list
 
     # Confirms whether specific room has space for further allocations
     def confirm_specific_room_has_space(self, room_name):
         """
-        :param room_name:
-        :return:
+        :param room_name: room name
+        :return: True if space is available
+                 False otherwise
         """
-        self.offices_list, self.living_spaces_list = self.search_rooms_list()
+        # first confirm overall availability of space
+        if self.confirm_availability_of_space_in_amity():
+            self.offices_list, self.living_spaces_list = self.search_rooms_list()
 
-        if room_name in self.offices_list:
-            return len(Amity.rooms_list[1][room_name]) < 6
+            if room_name in self.offices_list:
+                return len(Amity.rooms_list[1][room_name]) < 6
 
-        if room_name in self.living_spaces_list:
-            return len(Amity.rooms_list[0][room_name]) < 4
+            if room_name in self.living_spaces_list:
+                return len(Amity.rooms_list[0][room_name]) < 4
+        return False
 
     # Fetches room type
     def fetch_room_type(self, room_name):
@@ -113,7 +124,7 @@ class Amity(object):
         False - otherwise.
         """
 
-        if (self.fetch_room_type(room_name) == "office"):
+        if self.fetch_room_type(room_name) == "office":
 
             if person_identifier in Amity.rooms_list[1][room_name]:
                 return True
@@ -127,7 +138,7 @@ class Amity(object):
         returns: uses name and role to
                  return associated person identifier
         """
-        people_list = [{}, {}]
+
         self.matched_identifiers_list = []
         if role == "staff":
             self.staff_identifiers_list = Amity.people_list[1].keys()
@@ -143,16 +154,77 @@ class Amity(object):
 
         return self.matched_identifiers_list
 
+    # reallocates a person to a new room
     def reallocate_person(self, person_identifier, new_room_name):
         """
-
-        :param person_identifier:
-        :param new_room_name:
-        :return:
+        :param person_identifier: Person's unique ID
+        :param new_room_name: room to reallocate to
+        :return: relevant message
         """
+        # verify person_identifier
+        if not self.confirm_person_identifier(person_identifier):
+            return "Person identifier does not exist in the system"
+        # verify room name
+        if not self.confirm_room_name(new_room_name):
+            return "Room " + new_room_name + " does not exist in the system"
+        # check if room has space
+        if not self.confirm_specific_room_has_space(new_room_name):
+            return "Room " + new_room_name + " is fully occupied"
 
-        return "Person with identifier " + person_identifier +\
-               " was reallocated to " + new_room_name
+        if self.confirm_person_not_doubly_reallocated_to_same_room(person_identifier, new_room_name):
+            return "Person is already allocated to room " + new_room_name
+
+        # get room type
+        self.room_type = self.fetch_room_type(new_room_name)
+
+        if self.room_type == "livingspace":
+
+            if person_identifier.startswith("s"):
+                return "Cannot reallocate a staff member to a living space"
+            else:
+                Amity.rooms_list[0][new_room_name].append(person_identifier)
+        else:
+            Amity.rooms_list[1][new_room_name].append(person_identifier)
+
+        # check if person was reallocated a room of similar type
+        # before and cancel that allocation
+
+        livingspaces_list, offices_list = self.fetch_rooms_with_allocations()
+
+        # if person is staff, we cancel any previous allocation with no further checks
+        if person_identifier.startswith("s"):
+            for room in offices_list:
+                if person_identifier in Amity.rooms_list[1][room]:
+                    id_index = Amity.rooms_list[1][room].index(person_identifier)
+                    del(Amity.rooms_list[1][room][id_index])
+                    break
+        # if person is fellow, we check whether new reallocation
+        # is to office or living space before we cancel any previous allocation
+        else:
+            if self.room_type == "office":
+                # cancel previous office allocation
+                for room in offices_list:
+                    if person_identifier in Amity.rooms_list[1][room]:
+                        id_index = Amity.rooms_list[1][room].index(person_identifier)
+                        del(Amity.rooms_list[1][room][id_index])
+                        break
+            else:
+                # cancel previous living space allocation
+                for room in livingspaces_list:
+                    if person_identifier in Amity.rooms_list[0][room]:
+                        id_index = Amity.rooms_list[0][room].index(person_identifier)
+                        del(Amity.rooms_list[0][room][id_index])
+                        break
+
+        # return success message based on whether person is staff or fellow
+        if person_identifier.startswith("s"):
+            return "Person with identifier " + person_identifier + \
+                   " and name " + Amity.people_list[1][person_identifier][0] + \
+                   " was reallocated to " + new_room_name
+        else:
+            return "Person with identifier " + person_identifier + \
+                   " and name " + Amity.people_list[0][person_identifier][0] + \
+                   " was reallocated to " + new_room_name
 
     def confirm_availability_of_space_in_amity(self):
         """
@@ -282,7 +354,6 @@ class Amity(object):
             print("There is no free space currently, use the create_room \
                   command to create new space")
 
-
     def confirm_existence_of_allocations(self):
         """
 
@@ -299,6 +370,20 @@ class Amity(object):
                 if len(item) > 0:
                     return True
         return False
+
+    def fetch_rooms_with_allocations(self):
+        """
+        :return: list of rooms with allocations if any
+        """
+        if self.confirm_existence_of_allocations():
+            offices_list, living_spaces_list = self.search_rooms_list()
+            for room in offices_list:
+                if len(Amity.rooms_list[1][room]) > 0:
+                    self.offices_with_allocations.append(room)
+            for room in living_spaces_list:
+                if len(Amity.rooms_list[0][room]) > 0:
+                    self.livingspaces_with_allocations.append(room)
+        return self.livingspaces_with_allocations, self.offices_with_allocations
 
     def print_allocations(self, allocated_file_name=""):
         """
@@ -363,7 +448,6 @@ class Amity(object):
                         i += 1
 
                 return allocations_list
-
 
     def confirm_existence_of_unallocated(self):
         """
