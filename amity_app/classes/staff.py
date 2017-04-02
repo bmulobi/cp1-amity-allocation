@@ -47,7 +47,7 @@ class Staff(Person):
 
         # insert new person into staff dictionary with id as key
         Amity.people_list[1][self.person_id] = [self.name]
-        self.return_message += (self.name + " was added successfully as a Staff\n")
+        self.return_message += (self.name + " with ID " + self.person_id + " was added successfully as a Staff\n")
 
         # confirm availability of space in amity
         if self.amity_object.confirm_availability_of_space_in_amity():
