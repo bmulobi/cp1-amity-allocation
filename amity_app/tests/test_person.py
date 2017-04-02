@@ -162,9 +162,9 @@ class TestPerson(TestCase):
 
         Amity.person_identifier = 0
         Amity.people_list = [{}, {}]
-        self.fellow_object.add_person("Ben Man", "Y")
+        self.fellow_object.add_person("BEN MAN", "Y")
 
-        self.assertIn("Ben Man" and "Y", Amity.people_list[0]["f-1"])
+        self.assertIn("BEN MAN" and "Y", Amity.people_list[0]["f-1"])
 
     # Method tests if add_person() works properly
     def test_add_person_in_class_staff(self):
@@ -176,15 +176,35 @@ class TestPerson(TestCase):
 
         Amity.person_identifier = 0
         Amity.people_list = [{}, {}]
-        self.staff_object.add_person("Jackie Chan")
+        self.staff_object.add_person("JACKIE CHAN")
 
-        self.assertIn("Jackie Chan", Amity.people_list[1]["s-1"])
+        self.assertIn("JACKIE CHAN", Amity.people_list[1]["s-1"])
 
-    def test_add_person_rejects_invalid_names(self):
+    # ensure fellow's name is acceptable format
+    def test_add_person_in_fellow_rejects_illegal_characters_in_person_name(self):
         """
-        Method
+        test_add_person_in_fellow_rejects_illegal_characters_in_person_name():
+        test whether add_person() in class fellow rejects following characters
+        in person name
+        ( + ? . *  ^ $  ( ) \ [ ] { } | \ ) [0-9] ` ~ ! @ # % _ = ; : \" , < . > /
         """
-        pass
+        id, msg = self.fellow_object.add_person("BEn*&^%#W@^((_)(653132", "Y")
+        self.assertEqual(msg, "Avoid any of the following characters in name: + ? . *  ^ $ "
+                         "( ) \ [ ] { } | \  [0-9] ` ~ ! @ # % _ = ; : \" , < . > /",
+                         msg="Output not equal to expected output")
+
+    # ensure staff's name is acceptable format
+    def test_add_person_in_staff_rejects_illegal_characters_in_person_name(self):
+        """
+        test_add_person_in_staff_rejects_illegal_characters_in_person_name():
+        test whether add_person() in class fellow rejects following characters
+        in person name
+        ( + ? . *  ^ $  ( ) \ [ ] { } | \ ) [0-9] ` ~ ! @ # % _ = ; : \" , < . > /
+        """
+        id, msg = self.staff_object.add_person("BEn*&^%#W@^((_)(653132")
+        self.assertEqual(msg, "Avoid any of the following characters in name: + ? . *  ^ $ "
+                         "( ) \ [ ] { } | \  [0-9] ` ~ ! @ # % _ = ; : \" , < . > /",
+                         msg="Output not equal to expected output")
 
 
 
