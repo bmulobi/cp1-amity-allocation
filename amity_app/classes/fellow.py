@@ -66,6 +66,7 @@ class Fellow(Person):
                     if room[1] > 0:
                         Amity.rooms_list[1][room[0]].append(self.person_id)
                         room[1] -= 1
+                        Amity.people_list[0][self.person_id].append("office")
                         self.return_message += "and allocated to office " + room[0] + "\n"
                         break
             # check if fellow wants accommodation
@@ -76,6 +77,7 @@ class Fellow(Person):
                         if room[1] > 0:
                             Amity.rooms_list[0][room[0]].append(self.person_id)
                             room[1] -= 1
+                            Amity.people_list[0][self.person_id].append("livingspace")
                             self.return_message += "and living space " + room[0] + "\n"
                             break
 
