@@ -285,8 +285,8 @@ class TestAmity(TestCase):
 
         self.assertFalse(self.amity_object.confirm_existence_of_unallocated())
 
-        for i in range(7):
-            name = "Test Person" + str(i)
+        for i in ["-a", "-b", "-c", "-d", "-e", "-f"]:
+            name = "Test Person" + i
             self.staff_object.add_person(name)
 
         self.assertTrue(self.amity_object.confirm_existence_of_unallocated())
@@ -295,22 +295,26 @@ class TestAmity(TestCase):
     # to screen
     def test_prints_unallocated_to_screen(self):
         """
-        test_prints_unallocated():
+        test_prints_unallocated_to_screen():
         tests print_unallocated()
         """
         Amity.rooms_list = [{}, {}]
         Amity.people_list = [{}, {}]
 
-        for i in range(7):
-            name = "Test Person" + str(i)
+        for i in ["-a", "-b", "-c", "-d", "-e", "-f"]:
+            name = "Test Person" + i
             self.staff_object.add_person(name)
 
         with self.captured_output() as (out, err):
             self.amity_object.print_unallocated()
 
-        output = out.getvalue().strip()
-        self.assertEqual(output, "Test Person1, Test Person2, Test Person3," +
-                                 " Test Person4, Test Person5, Test Person6")
+            output = out.getvalue()
+            self.assertEqual(output, "TEST PERSON-A - not allocated office\n" +
+                             "TEST PERSON-B - not allocated office\n" +
+                             "TEST PERSON-C - not allocated office\n" +
+                             "TEST PERSON-D - not allocated office\n" +
+                             "TEST PERSON-E - not allocated office\n" +
+                             "TEST PERSON-F - not allocated office\n")
 
     # tests whether print_unallocated() prints(writes)
     # to file
@@ -321,21 +325,22 @@ class TestAmity(TestCase):
         """
         Amity.rooms_list = [{}, {}]
         Amity.people_list = [{}, {}]
+        lines_list = []
 
         file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
         filename = os.path.join(file_path, "text_files/unallocated_file.txt")
 
-        for i in range(3):
-            name = "Staff Person" + str(i)
+        for i in ["-a", "-b"]:
+            name = "Staff Person" + i
             self.staff_object.add_person(name)
-        for i in range(3):
-            name = "Fellow Person" + str(i)
-            self.fellow_object.add_person(name)
+        for i in ["-a", "-b"]:
+            name = "Fellow Person" + i
+            self.fellow_object.add_person(name, "Y")
 
-        self.amity_object.print_unallocated(filename)
+        self.amity_object.print_unallocated("unallocated_file.txt")
 
         try:
-            file_object = open(filename, "r+")
+            file_object = open(filename, "r")
 
             try:
                 lines_list = file_object.readlines()
@@ -344,8 +349,15 @@ class TestAmity(TestCase):
                 file_object.close()
 
         except IOError as e:
-            print(str(e))
-        self.assertIn("Staff Person1\nStaff Person2\nFellow Person1\nFellow Person2\n", lines_list)
+            print("File access error - ", str(e))
+
+        self.assertIn("STAFF PERSON-A - not allocated office\n" and
+                      "STAFF PERSON-B - not allocated office\n" and
+                      "FELLOW PERSON-A - not allocated office\n" and
+                      "FELLOW PERSON-A - not allocated living space\n" and
+                      "FELLOW PERSON-B - not allocated office\n" and
+                      "FELLOW PERSON-B - not allocated living space\n",
+                      lines_list)
 
     # tests check for allocations in given room
     def test_it_confirms_specific_room_has_allocations(self):
@@ -358,12 +370,12 @@ class TestAmity(TestCase):
 
         self.office_object.create_room("Valhalla")
 
-        self.assertFalse(self.amity_object.confirm_existence_of_allocations_for_particular_room("Valhalla"))
+        self.assertFalse(self.amity_object.confirm_existence_of_allocations_for_particular_room("VALHALLA"))
 
         self.staff_object.add_person("Code Dragon")
         self.fellow_object.add_person("Bau Meister")
 
-        self.assertTrue(self.amity_object.confirm_existence_of_allocations_for_particular_room("Valhalla"))
+        self.assertTrue(self.amity_object.confirm_existence_of_allocations_for_particular_room("VALHALLA"))
 
     # tests if print_room() prints to screen
     def test_it_prints_room(self):
@@ -510,7 +522,8 @@ class TestAmity(TestCase):
     def test_it_confirms_existence_of_file(self):
         """
         test_it_confirms_existence_of_db_file():
-
+        tests whether load state confirms existence of source db
+        file before attempting to load state
         """
         self.assertEqual(self.amity_object.load_state("fake_file.db"),
                          "File does not exist", "Could not find file")
@@ -528,13 +541,15 @@ class TestAmity(TestCase):
     def test_it_loads_state(self):
         """
         test_it_loads_state():
-
+        tests whether load state works properly
         """
-        if os.path.isfile("test.db"):
-            os.remove("test.db")
+        file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        filename = os.path.join(file_path, "db_files/test.db")
+        if os.path.isfile(filename):
+            os.remove(filename)
 
         try:
-            connection = sqlite3.connect("test.db")
+            connection = sqlite3.connect(filename)
             connection.row_factory = sqlite3.Row
             cursor = connection.cursor()
 
