@@ -57,8 +57,8 @@ class Amity(object):
 
     def search_rooms_list(self):
         """
-
-        :return:
+        :return: list of rooms in amity, if any
+                 False otherwise
         """
         if not len(Amity.rooms_list):
             return False
@@ -132,7 +132,7 @@ class Amity(object):
             if person_identifier in Amity.rooms_list[0][room_name]:
                 return True
         return False
-
+    # getsperson's identifier given the name and role
     def fetch_person_identifier(self, person_name, role):
         """
         returns: uses name and role to
@@ -169,7 +169,7 @@ class Amity(object):
             return "Room " + new_room_name + " does not exist in the system"
         # check if room has space
         if not self.confirm_specific_room_has_space(new_room_name):
-            return "Room " + new_room_name + " is fully occupied"
+            return new_room_name.upper() + " is fully occupied"
 
         if self.confirm_person_not_doubly_reallocated_to_same_room(person_identifier, new_room_name):
             return "Person is already allocated to room " + new_room_name
@@ -226,6 +226,7 @@ class Amity(object):
                    " and name " + Amity.people_list[0][person_identifier][0] + \
                    " was reallocated to " + new_room_name
 
+    # verifies overall availability of space in amity
     def confirm_availability_of_space_in_amity(self):
         """
 
@@ -244,6 +245,7 @@ class Amity(object):
                     return True
         return False
 
+    # fetches list of roomswith space
     def fetch_rooms_with_space(self):
         """
         returns 2 lists: one for offices with space (if any)
@@ -274,6 +276,7 @@ class Amity(object):
         else:
             return False
 
+    # loads people from text file to system
     def load_people(self):
         """
         :param file_path:
@@ -354,10 +357,11 @@ class Amity(object):
             print("There is no free space currently, use the create_room \
                   command to create new space")
 
+    # confirms whether there are allocations in the system
     def confirm_existence_of_allocations(self):
         """
-
-        :return:
+        :return: True if allocations exist
+                 False otherwise
         """
         if len(Amity.rooms_list[0]) > 0:
             items_list = Amity.rooms_list[0].values()
@@ -371,6 +375,7 @@ class Amity(object):
                     return True
         return False
 
+    # fetches list of all rooms with allocations
     def fetch_rooms_with_allocations(self):
         """
         :return: list of rooms with allocations if any
@@ -385,6 +390,7 @@ class Amity(object):
                     self.livingspaces_with_allocations.append(room)
         return self.livingspaces_with_allocations, self.offices_with_allocations
 
+    # prints all allocations in the system
     def print_allocations(self, allocated_file_name=""):
         """
         """
@@ -449,28 +455,117 @@ class Amity(object):
 
                 return allocations_list
 
+    # verifies whether unallocated people exist
     def confirm_existence_of_unallocated(self):
         """
-
-        :return:
+        :return: True if unallocated people are found
+                 False otherwise
         """
+        # if there are any people in the system
+        if len(Amity.people_list[0]) > 0 or len(Amity.people_list[1]) > 0:
+            # put their IDs into lists
+            fellows_list = Amity.people_list[0].keys()
+            staff_list = Amity.people_list[1].keys()
+
+            for person_id in fellows_list:
+                # check if any of the fellows has not been allocated an office
+                if "office" not in Amity.people_list[0][person_id]:
+                    return True
+
+                # check if any of the fellows who wanted a
+                # living space has not been allocated one
+                if ("Y" in Amity.people_list[0][person_id] and
+                    "livingspace" not in Amity.people_list[0][person_id]):
+                    return True
+
+            for person_id in staff_list:
+                # check if any of the staff has not been allocated an office
+                if "office" not in Amity.people_list[1][person_id]:
+                    return True
         return False
 
-    def print_unallocated(self, unallocated_file_name=""):
+    # prints names of people without room allocations
+    def print_unallocated(self, destination_file_name=""):
         """
-
-        :param unallocated_file_name:
+        :param destination_file_name: file to write to
         :return:
         """
-        try:
-            file_object = open(unallocated_file_name, "w")
-            file_object.close()
+        # check if unallocated people exist
+        if self.confirm_existence_of_unallocated():
 
-        except IOError as e:
-            print(str(e))
+            # if no file name given, print to screen
+            if destination_file_name == "":
+                # if there are any people in the system
+                if len(Amity.people_list[0]) > 0 or len(Amity.people_list[1]) > 0:
+                    # put their IDs into lists
+                    fellows_list = Amity.people_list[0].keys()
+                    staff_list = Amity.people_list[1].keys()
 
-        return "print_unallocated() was called successfully"
+                    for person_id in fellows_list:
+                        # check if any of the fellows has not been allocated an office
+                        # and print name to screen
+                        if "office" not in Amity.people_list[0][person_id]:
+                            print(Amity.people_list[0][person_id][0] + " - not allocated office")
 
+                        # check if any of the fellows who wanted a
+                        # living space has not been allocated one
+                        # and print name to screen
+                        if ("Y" in Amity.people_list[0][person_id] and
+                            "livingspace" not in Amity.people_list[0][person_id]):
+                            print(Amity.people_list[0][person_id][0] + " - not allocated living space")
+
+                    for person_id in staff_list:
+                        # check if any of the staff has not been allocated an office
+                        # and print name to screen
+                        if "office" not in Amity.people_list[1][person_id]:
+                            print(Amity.people_list[1][person_id][0] + " - not allocated office")
+
+            else:
+                file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+                filename = os.path.join(file_path, 'text_files/' + destination_file_name)
+
+                try:
+                    file_object = open(filename, "w")
+
+                    try:
+                        # if there are any people in the system
+                        if len(Amity.people_list[0]) > 0 or len(Amity.people_list[1]) > 0:
+                            # put their IDs into lists
+                            fellows_list = Amity.people_list[0].keys()
+                            staff_list = Amity.people_list[1].keys()
+
+                            for person_id in fellows_list:
+                                # check if any of the fellows has not been allocated an office
+                                # and write to file
+                                if "office" not in Amity.people_list[0][person_id]:
+                                    file_object.write(Amity.people_list[0][person_id][0] +
+                                                      " - not allocated office\n")
+
+                                # check if any of the fellows who wanted a
+                                # living space has not been allocated one
+                                # and write to file
+                                if ("Y" in Amity.people_list[0][person_id] and
+                                            "livingspace" not in Amity.people_list[0][person_id]):
+                                    file_object.write(Amity.people_list[0][person_id][0] +
+                                                      " - not allocated living space\n")
+
+                            for person_id in staff_list:
+                                # check if any of the staff has not been allocated an office
+                                # and write to file
+                                if "office" not in Amity.people_list[1][person_id]:
+                                    file_object.write(Amity.people_list[1][person_id][0] +
+                                                      " - not allocated office\n")
+                            print("Unallocated people were written successfully to ", filename)
+
+                    finally:
+                        file_object.close()
+
+                except IOError as e:
+                    print("File access error - " + str(e))
+        else:
+            print("There are no unallocated people in the system")
+
+    # verifies whether room has allocations
     def confirm_existence_of_allocations_for_particular_room(self, room_name):
         """
 
@@ -478,6 +573,7 @@ class Amity(object):
         """
         pass
 
+    # prints allocations for given room
     def print_room(self, room_name):
         """
 
@@ -487,6 +583,7 @@ class Amity(object):
 
         return "print_room() was called successfully with arg " + room_name
 
+    # writes data from memory to database
     def save_state(self, destination_db=""):
         """
 
@@ -495,20 +592,24 @@ class Amity(object):
         """
         return "save_state() was called successfully with arg " + destination_db
 
+    # verifies existence of db file to be used by load_state()
     def confirm_existence_of_db_file(self, file_name):
         """
-
-        :return:
+        :param file_name: file to search for
+        :return: True if found
+                 False otherwise
         """
+        file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        file_name = os.path.join(file_path, "db_files/" + file_name)
+
         if os.path.isfile(file_name):
             return True
         return False
 
-
+    # loads data from database to memory
     def load_state(self, source_db):
         """
-
-        :param source_db:
+        :param source_db: source database file
         :return:
         """
 
