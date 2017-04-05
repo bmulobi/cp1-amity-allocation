@@ -69,6 +69,8 @@ class Fellow(Person):
                         Amity.people_list[0][self.person_id].append("office")
                         self.return_message += "and allocated to office " + room[0] + "\n"
                         break
+            else:
+                Amity.people_list[0][self.person_id].append(0)
             # check if fellow wants accommodation
             if self.accommodation == "Y":
                 # if there's a living space with space, allocate to fellow
@@ -80,5 +82,9 @@ class Fellow(Person):
                             Amity.people_list[0][self.person_id].append("livingspace")
                             self.return_message += "and living space " + room[0] + "\n"
                             break
+                else:
+                    Amity.people_list[0][self.person_id].append(0)
+            else:
+                Amity.people_list[0][self.person_id].append(0)
 
         return self.person_id, self.return_message
