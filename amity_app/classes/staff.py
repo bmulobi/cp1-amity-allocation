@@ -63,5 +63,7 @@ class Staff(Person):
                         Amity.people_list[1][self.person_id].append("office")
                         self.return_message += ("and allocated to office " + room[0] + "\n")
                         break
+            else:
+                Amity.people_list[1][self.person_id].append(0)
 
         return self.person_id, self.return_message
