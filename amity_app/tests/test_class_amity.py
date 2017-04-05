@@ -363,7 +363,8 @@ class TestAmity(TestCase):
     def test_it_confirms_specific_room_has_allocations(self):
         """
         test_it_confirms_specific_room_has_allocations():
-        tests confirm_existence_of_allocations_for_particular_room()
+        tests if confirm_existence_of_allocations_for_particular_room()
+        works properly
         """
         Amity.rooms_list = [{}, {}]
         Amity.people_list = [{}, {}]
@@ -403,8 +404,10 @@ class TestAmity(TestCase):
         test_it_saves_state_to_default_db():
 
         """
-        if os.path.isfile("amity.db"):
-            os.remove("amity.db")
+        file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        filename = os.path.join(file_path, "db_files/amity.db")
+        if os.path.isfile(filename):
+            os.remove(filename)
 
         Amity.rooms_list = [{}, {}]
         Amity.people_list = [{}, {}]
@@ -420,7 +423,7 @@ class TestAmity(TestCase):
         results_list = []
 
         try:
-            connection = sqlite3.connect("amity.db")
+            connection = sqlite3.connect(filename)
             connection.row_factory = sqlite3.Row
             cursor = connection.cursor()
 
@@ -429,25 +432,25 @@ class TestAmity(TestCase):
             results = cursor.fetchall()
 
             for row in results:
-                results_list.append(results["person_iname"])
-                results_list.append(results["person_identifier"])
-                results_list.append(results["accommodation"])
+                results_list.append(row["person_name"])
+                results_list.append(row["person_identifier"])
+                results_list.append(row["accommodation"])
 
             cursor.execute("SELECT * FROM tbl_rooms")
             connection.commit()
             results = cursor.fetchall()
 
             for row in results:
-                results_list.append(results["room_name"])
-                results_list.append(results["room_type"])
+                results_list.append(row["room_name"])
+                results_list.append(row["room_type"])
 
             cursor.execute("SELECT * FROM tbl_allocations")
             connection.commit()
             results = cursor.fetchall()
 
             for row in results:
-                results_list.append(results["room_name"])
-                results_list.append(results["person_id"])
+                results_list.append(row["room_name"])
+                results_list.append(row["person_id"])
 
         except sqlite3.Error as e:
             print("db access error - ", str(e))
@@ -463,8 +466,10 @@ class TestAmity(TestCase):
         test_it_saves_state_to_specified_db():
 
         """
-        if os.path.isfile("specified.db"):
-            os.remove("specified.db")
+        file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        filename = os.path.join(file_path, "db_files/specified.db")
+        if os.path.isfile(filename):
+            os.remove(filename)
 
         Amity.rooms_list = [{}, {}]
         Amity.people_list = [{}, {}]
@@ -475,13 +480,12 @@ class TestAmity(TestCase):
         self.staff_object.add_person("Josh Jebs")
         self.fellow_object.add_person("Sarah Munene", "Y")
 
-        self.amity_object.save_state("specified")
+        self.amity_object.save_state("specified.db")
 
         results_list = []
-        db_name = "specified." + "db"
 
         try:
-            connection = sqlite3.connect(db_name)
+            connection = sqlite3.connect(filename)
             connection.row_factory = sqlite3.Row
             cursor = connection.cursor()
 
@@ -490,25 +494,25 @@ class TestAmity(TestCase):
             results = cursor.fetchall()
 
             for row in results:
-                results_list.append(results["person_name"])
-                results_list.append(results["person_identifier"])
-                results_list.append(results["accommodation"])
+                results_list.append(row["person_name"])
+                results_list.append(row["person_identifier"])
+                results_list.append(row["accommodation"])
 
             cursor.execute("SELECT * FROM tbl_rooms")
             connection.commit()
             results = cursor.fetchall()
 
             for row in results:
-                results_list.append(results["room_name"])
-                results_list.append(results["room_type"])
+                results_list.append(row["room_name"])
+                results_list.append(row["room_type"])
 
             cursor.execute("SELECT * FROM tbl_allocations")
             connection.commit()
             results = cursor.fetchall()
 
             for row in results:
-                results_list.append(results["room_name"])
-                results_list.append(results["person_id"])
+                results_list.append(row["room_name"])
+                results_list.append(row["person_id"])
 
         except sqlite3.Error as e:
             print("db access error - ", str(e))
@@ -519,13 +523,14 @@ class TestAmity(TestCase):
                       msg="Could not verify database fetch results")
 
     # tests verification of file existence
-    def test_it_confirms_existence_of_file(self):
+    def test_it_confirms_existence_of_db_file(self):
         """
         test_it_confirms_existence_of_db_file():
         tests whether load state confirms existence of source db
         file before attempting to load state
         """
-        self.assertEqual(self.amity_object.load_state("fake_file.db"),
+
+        self.assertEqual(self.amity_object.load_state("non_existent_file.db"),
                          "File does not exist", "Could not find file")
 
     # tests verification of file type
@@ -535,7 +540,7 @@ class TestAmity(TestCase):
 
         """
         self.assertEqual(self.amity_object.load_state("my_file.txt"),
-                         "File extension must be .db", "Not a database file")
+                         "File extension must be .db", msg="Not a database file")
 
     # tests load_state()
     def test_it_loads_state(self):
@@ -548,73 +553,80 @@ class TestAmity(TestCase):
         if os.path.isfile(filename):
             os.remove(filename)
 
-        try:
-            connection = sqlite3.connect(filename)
-            connection.row_factory = sqlite3.Row
-            cursor = connection.cursor()
+        if self.amity_object.create_database("test.db") is True:
 
-            cursor.execute("""CREATE TABLE tbl_people (id INTEGER PRIMARY KEY NOT NULL,
-                           person_name TEXT NOT NULL, person_identifier TEXT NOT NULL,
-                           accommodation TEXT NOT NULL)""")
-            cursor.execute("""CREATE TABLE tbl_rooms (id INTEGER PRIMARY KEY NOT NULL,
-                           room_name TEXT NOT NULL, room_type TEXT NOT NULL)""")
-            cursor.execute("""CREATE TABLE tbl_allocations (id INTEGER PRIMARY KEY NOT NULL,
-                           room_name TEXT NOT NULL, person_id TEXT NO NULL)""")
-            connection.commit()
+            try:
+                connection = sqlite3.connect(filename)
+                connection.row_factory = sqlite3.Row
+                cursor = connection.cursor()
 
-            rows = [
-                    ("Big Ben", "f-1", "Y"),
-                    ("Sally Molly", "s-2", "N"),
-                    ("Harry Porter", "f-3", "N"),
-                    ("Jim Harrigan", "s-4", "N")
-                   ]
+                rows = [
+                        ("Big Ben", "f-1", "Y"),
+                        ("Sally Molly", "s-2", "N"),
+                        ("Harry Porter", "f-3", "N"),
+                        ("Jim Harrigan", "s-4", "N")
+                       ]
 
-            cursor.executemany("""INSERT INTO tbl_people (person_name, person_identifier,
-                           accommodation) VALUES (?,?,?)""", rows)
+                cursor.executemany("""INSERT INTO tbl_people (person_name, person_identifier,
+                               accommodation) VALUES (?,?,?)""", rows)
 
-            rows = [
-                    ("Valhalla", "office"),
-                    ("Upstairs", "livingspace")
-                   ]
-            cursor.executemany("""INSERT INTO tbl_rooms (room_name, room_type) VALUES (?,?)""", rows)
+                rows = [
+                        ("Valhalla", "office"),
+                        ("Upstairs", "livingspace")
+                       ]
+                cursor.executemany("""INSERT INTO tbl_rooms (room_name, room_type) VALUES (?,?)""", rows)
 
-            rows = [
-                    ("Valhalla", "f-1"),
-                    ("Upstairs", "f-1"),
-                    ("Valhalla", "s-2"),
-                    ("Valhalla", "f-3"),
-                   ]
+                rows = [
+                        ("Valhalla", "f-1"),
+                        ("Upstairs", "f-1"),
+                        ("Valhalla", "s-2"),
+                        ("Valhalla", "f-3")
+                       ]
 
-            cursor.executemany("""INSERT INTO tbl_allocations (room_name, person_id) VALUES (?,?)""", rows)
-            connection.commit()
+                cursor.executemany("""INSERT INTO tbl_allocations (room_name, person_id) VALUES (?,?)""", rows)
+                connection.commit()
 
-        except sqlite3.Error as e:
-            print("db access error - ", str(e))
+            except sqlite3.Error as e:
+                print("db access error - ", str(e))
 
-        Amity.rooms_list = [{}, {}]
-        Amity.people_list = [{}, {}]
+            Amity.rooms_list = [{}, {}]
+            Amity.people_list = [{}, {}]
+            fellows_names = []
+            staff_names = []
 
-        self.amity_object.load_state("test.db")
+            self.amity_object.load_state("test.db")
 
-        fellows_names = Amity.people_list[0].values()
-        self.assertIn("Big Ben" and "Harry Porter", fellows_names, msg="Name not found in dictionary")
+            fellows_ids = Amity.people_list[0].keys()
+            for key in fellows_ids:
+                fellows_names.append(Amity.people_list[0][key][0])
 
-        staff_names = Amity.people_list[0].values()
-        self.assertIn("Sally Molly" and "Jim Harrigan", staff_names, msg="Name not found in dictionary")
+            self.assertIn("Big Ben" and "Harry Porter", fellows_names, msg="Name not found in dictionary")
 
-        livingspaces_names = Amity.rooms_list[0].keys()
-        self.assertIn("Upstairs", livingspaces_names, msg="Name not found in dictionary")
+            staff_ids = Amity.people_list[1].keys()
+            for key in staff_ids:
+                staff_names.append(Amity.people_list[1][key][0])
 
-        offices_names = Amity.rooms_list[1].keys()
-        self.assertIn("Valhalla", offices_names, msg="Name not found in dictionary")
+            self.assertIn("Sally Molly" and "Jim Harrigan", staff_names, msg="Name not found in dictionary")
 
-        offices_allocations_list = Amity.rooms_list[1].values()
-        self.assertIn("f-1" and "s-2" and "f-3", offices_allocations_list,
-                      msg="Could not find the identifiers in dictionary")
+            livingspaces_names = Amity.rooms_list[0].keys()
+            self.assertIn("Upstairs", livingspaces_names, msg="Name not found in dictionary")
 
-        livingspaces_allocations_list = Amity.rooms_list[0].values()
-        self.assertIn("f-1", livingspaces_allocations_list,
-                      msg="Could not find the identifiers in dictionary")
+            offices_names = Amity.rooms_list[1].keys()
+            self.assertIn("Valhalla", offices_names, msg="Name not found in dictionary")
+
+            offices_allocations_list = []
+            for name in offices_names:
+                offices_allocations_list += Amity.rooms_list[1][name]
+
+            self.assertIn("f-1" and "s-2" and "f-3", offices_allocations_list,
+                          msg="Could not find the identifiers in dictionary")
+
+            livingspaces_allocations_list = []
+
+            for name in livingspaces_names:
+                livingspaces_allocations_list += Amity.rooms_list[0][name]
+            self.assertIn("f-1", livingspaces_allocations_list,
+                          msg="Could not find the identifiers in dictionary")
 
 
 
