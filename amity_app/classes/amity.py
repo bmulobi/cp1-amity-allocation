@@ -1,6 +1,7 @@
 # This class will contain most of the functionality
 # required in the amity room allocation application
 import os
+import sqlite3
 
 
 class Amity(object):
@@ -63,6 +64,9 @@ class Amity(object):
         if not len(Amity.rooms_list):
             return False
 
+        self.living_spaces_list = []
+        self.offices_list = []
+
         if len(Amity.rooms_list[0]):
             self.living_spaces_list = Amity.rooms_list[0].keys()
 
@@ -106,11 +110,14 @@ class Amity(object):
     def fetch_room_type(self, room_name):
         """
         """
-        self.offices_list, self.living_spaces_list = self.search_rooms_list()
-        if room_name in self.offices_list:
-            return "office"
-        if room_name in self.living_spaces_list:
-            return "livingspace"
+        if self.search_rooms_list():
+
+            self.offices_list, self.living_spaces_list = self.search_rooms_list()
+            if room_name in self.offices_list:
+                return "office"
+            if room_name in self.living_spaces_list:
+                return "livingspace"
+            return False
 
     # Alerts if we try to allocate person to the
     # same room they are already allocated
@@ -568,10 +575,19 @@ class Amity(object):
     # verifies whether room has allocations
     def confirm_existence_of_allocations_for_particular_room(self, room_name):
         """
-
-        :return:
+        :param room_name: name of room to check
+        :return: True if allocations exist
+                 False otherwise
         """
-        pass
+
+        room_type = self.fetch_room_type(room_name)
+        if room_type and room_type == "office":
+            if len(Amity.rooms_list[1][room_name]) > 0:
+                return True
+        if room_type and room_type == "livingspace":
+            if len(Amity.rooms_list[0][room_name]) > 0:
+                return True
+        return False
 
     # prints allocations for given room
     def print_room(self, room_name):
@@ -583,14 +599,167 @@ class Amity(object):
 
         return "print_room() was called successfully with arg " + room_name
 
+    # creates required database
+    def create_database(self, dbname):
+        """
+        :param dbname: name of db to create
+        :return: True on success
+                 False otherwise
+        """
+        file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        filename = os.path.join(file_path, "db_files/" + dbname)
+
+        # if db already exists, delete it
+        if os.path.isfile(filename):
+            os.remove(filename)
+
+        try:
+            connection = sqlite3.connect(filename)
+            connection.row_factory = sqlite3.Row
+            cursor = connection.cursor()
+
+            cursor.execute("""CREATE TABLE tbl_people (id INTEGER PRIMARY KEY NOT NULL,
+                           person_name TEXT NOT NULL, person_identifier TEXT NOT NULL,
+                           accommodation TEXT NOT NULL DEFAULT 'N', has_office BOOLEAN NOT NULL DEFAULT 0,
+                           has_livingspace BOOLEAN NOT NULL DEFAULT 0)""")
+            cursor.execute("""CREATE TABLE tbl_rooms (id INTEGER PRIMARY KEY NOT NULL,
+                           room_name TEXT NOT NULL, room_type TEXT NOT NULL)""")
+            cursor.execute("""CREATE TABLE tbl_allocations (id INTEGER PRIMARY KEY NOT NULL,
+                           room_name TEXT NOT NULL, person_id TEXT NO NULL)""")
+            connection.commit()
+            connection.close()
+            return True
+
+        except sqlite3.Error as e:
+
+            return str(e)
+
     # writes data from memory to database
     def save_state(self, destination_db=""):
         """
-
-        :param destination_db:
-        :return:
+        :param destination_db: database to save to
+        :return: success message on success
+                 failure message on failure
         """
-        return "save_state() was called successfully with arg " + destination_db
+        if destination_db:
+            file_end = destination_db
+        else:
+            file_end = "amity.db"
+
+        file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        filename = os.path.join(file_path, "db_files/" + file_end)
+        if os.path.isfile(filename):
+            os.remove(filename)
+
+        # ensure there's some data to save
+        if (len(Amity.people_list[0]) > 0 or len(Amity.people_list[1]) > 0 or
+           len(Amity.rooms_list[0]) > 0 or len(Amity.rooms_list[1]) > 0):
+
+            # ensure database has been created
+            if self.create_database(file_end) is True:
+
+                try:
+                    connection = sqlite3.connect(filename)
+                    cursor = connection.cursor()
+
+                    # if any fellows in system
+                    if len(Amity.people_list[0]) > 0:
+
+                        fellow_ids = Amity.people_list[0].keys()
+                        # insert fellows into table
+                        for item in fellow_ids:
+
+                            has_office = 0
+                            has_livingspace = 0
+
+                            if Amity.people_list[0][item][2] == "office":
+                                has_office = 1
+                            if Amity.people_list[0][item][3] == "livingspace":
+                                has_livingspace = 1
+                            cursor.execute("""INSERT INTO tbl_people (person_name, person_identifier,
+                                           accommodation, has_office, has_livingspace) VALUES (?,?,?,?,?)""",
+                                           (
+                                                Amity.people_list[0][item][0],
+                                                item,
+                                                Amity.people_list[0][item][1],
+                                                has_office,
+                                                has_livingspace
+                                           )
+                                           )
+                        connection.commit()
+
+                    # if any staff in system
+                    if len(Amity.people_list[1]) > 0:
+
+                        staff_ids = Amity.people_list[1].keys()
+                        # insert staff into table
+                        for item in staff_ids:
+
+                            has_office = 0
+
+                            if Amity.people_list[1][item][1] == "office":
+                                has_office = 1
+
+                            cursor.execute("""INSERT INTO tbl_people (person_name, person_identifier,
+                                           has_office)VALUES (?,?,?)""",
+                                           (
+                                               Amity.people_list[1][item][0],
+                                               item,
+                                               has_office
+                                           )
+                                           )
+                        connection.commit()
+
+                    # if any living spaces in system
+                    if len(Amity.rooms_list[0]) > 0:
+
+                        living_space_names = Amity.rooms_list[0].keys()
+                        # insert living spaces into table rooms
+                        for item in living_space_names:
+
+                            cursor.execute("""INSERT INTO tbl_rooms (room_name, room_type) VALUES (?,?)""",
+                                           (
+                                               item,
+                                               "livingspace"
+                                           )
+                                           )
+
+                            for person_id in Amity.rooms_list[0][item]:
+                                cursor.execute("""INSERT INTO tbl_allocations (room_name, person_id) VALUES (?,?)""",
+                                               (
+                                                   item,
+                                                   person_id
+                                               )
+                                               )
+                        connection.commit()
+
+                    # if any offices in system
+                    if len(Amity.rooms_list[1]) > 0:
+
+                        office_names = Amity.rooms_list[1].keys()
+                        # insert offices into table rooms
+                        for item in office_names:
+
+                            cursor.execute("""INSERT INTO tbl_rooms (room_name, room_type) VALUES (?,?)""",
+                                           (
+                                               item,
+                                               "office"
+                                           )
+                                           )
+
+                            for person_id in Amity.rooms_list[1][item]:
+                                cursor.execute("""INSERT INTO tbl_allocations (room_name, person_id) VALUES (?,?)""",
+                                               (
+                                                   item,
+                                                   person_id
+                                               )
+                                               )
+                        connection.commit()
+
+                except sqlite3.Error as e:
+                    return "An error occurred - " + e
+
+            return "State was saved successfully to " + filename
 
     # verifies existence of db file to be used by load_state()
     def confirm_existence_of_db_file(self, file_name):
@@ -610,7 +779,69 @@ class Amity(object):
     def load_state(self, source_db):
         """
         :param source_db: source database file
-        :return:
+        :return: success message on success
+                 error message otherwise
         """
+        # reject files that are not sqlite3 database files
+        if not source_db.endswith(".db"):
+            return "File extension must be .db"
+        # confirm existence of db source file
+        if not self.confirm_existence_of_db_file(source_db):
+            return "File does not exist"
 
-        return "load_state() was called successfully with arg " + source_db
+        file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        filename = os.path.join(file_path, "db_files/" + source_db)
+        offices_list = []
+        livingspaces_list = []
+
+        try:
+            connection = sqlite3.connect(filename)
+            connection.row_factory = sqlite3.Row
+            cursor = connection.cursor()
+
+            # fetch all data from table people
+            cursor.execute("SELECT * FROM tbl_people")
+            rows = cursor.fetchall()
+
+            for row in rows:
+                # if person is staff, store in staff dictionary
+                if row["person_identifier"].startswith("s"):
+                    Amity.people_list[1][row["person_identifier"]] = [row["person_name"]]
+                else:
+                    # if person is fellow, store in fellow dictionary
+                    Amity.people_list[0][row["person_identifier"]] = [row["person_name"], row["accommodation"]]
+
+            # fetch all data from table rooms
+            cursor.execute("SELECT * FROM tbl_rooms")
+            rows = cursor.fetchall()
+            for row in rows:
+                # if room is office, store in office dictionary
+                if row["room_type"] == "office":
+                    Amity.rooms_list[1][row["room_name"]] = []
+                    offices_list.append(row["room_name"])
+
+                else:
+                    # if room is living space, store in living space dictionary
+                    Amity.rooms_list[0][row["room_name"]] = []
+                    livingspaces_list.append(row["room_name"])
+
+            # fetch all data from table allocations
+            cursor.execute("SELECT * FROM tbl_allocations")
+            rows = cursor.fetchall()
+            for row in rows:
+                # if room is office
+                if row["room_name"] in offices_list:
+                    if row["room_name"] not in Amity.rooms_list[1].keys():
+                        Amity.rooms_list[1][row["room_name"]] = [row["person_id"]]
+                    else:
+                        Amity.rooms_list[1][row["room_name"]].append(row["person_id"])
+                if row["room_name"] in livingspaces_list:
+                    if row["room_name"] not in Amity.rooms_list[0].keys():
+                        Amity.rooms_list[0][row["room_name"]] = [row["person_id"]]
+                    else:
+                        Amity.rooms_list[0][row["room_name"]].append(row["person_id"])
+
+        except sqlite3.Error as e:
+            print("DB access error - ", str(e))
+
+        return "State was loaded successfully from " + filename
