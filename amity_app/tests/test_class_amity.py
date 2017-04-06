@@ -143,14 +143,20 @@ class TestAmity(TestCase):
     def test_does_not_reallocate_staff_to_livingspace(self):
         """
         test_does_not_reallocate_staff_to_livingspace():
-
+        tests whether reallocate_person() does not reallocate
+        staff member to a living space
         """
+        Amity.people_list = [{}, {}]
+        Amity.rooms_list = [{}, {}]
 
-        self.living_space_object.create_room("Atom")
+        self.office_object.create_room("Atom")
         person_id, msg = self.staff_object.add_person("Ben Man")
-        self.assertEqual(self.amity_object.reallocate_person(person_id, "Atom"),
+        self.living_space_object.create_room("Hostel")
+        self.assertEqual(self.amity_object.reallocate_person(person_id, "HOSTEL"),
                          "Cannot reallocate a staff member to a living space",
                          msg="Could not reallocate staff member to living space")
+
+    # tests whether does not reallocate
 
     # tests whether reallocate_person() is reallocating
     # properly
@@ -165,8 +171,8 @@ class TestAmity(TestCase):
         self.living_space_object.create_room("TestRoom")
         person_id, msg = self.fellow_object.add_person("TEST PERSON", "Y")
         self.living_space_object.create_room("TestRoomTwo")
-        self.assertEqual(self.amity_object.reallocate_person(person_id, "TestRoomTwo"),
-                         "Person with identifier " + person_id + " and name TEST PERSON was reallocated to TestRoomTwo",
+        self.assertEqual(self.amity_object.reallocate_person(person_id, "TESTROOMTWO"),
+                         "Person with identifier " + person_id + " and name TEST PERSON was reallocated to TESTROOMTWO",
                          msg="Failed to reallocate person")
 
     # tests whether method confirms availability of space
@@ -238,28 +244,55 @@ class TestAmity(TestCase):
                         msg="Could not confirm existence of allocations")
 
     # tests if print_allocations works properly
-    def test_it_prints_allocations(self):
+    def test_it_prints_allocations_to_screen(self):
         """
-        test_it_prints_allocations():
+        test_it_prints_allocations_to_screen():
         tests print_allocations()
         """
+        Amity.person_identifier = 0
         Amity.rooms_list = [{}, {}]
         Amity.people_list = [{}, {}]
+
         self.office_object.create_room("TestRoom")
         for i in ["-a", "-b", "-c", "-d", "-e", "-f"]:
-            name = "Test Person" + str(i)
+            name = "Test Person" + i
             self.staff_object.add_person(name)
-        self.assertIn("TestRoom\n" and
-                      "-------------------------------------\n" and
-                      "Test Person1, Test Person2, Test Person3, " +
-                      "Test Person4, Test Person5, Test Person6\n",
-                      self.amity_object.print_allocations()
-                      )
 
-        self.amity_object.print_allocations("../text_files/allocations_file.txt")
+        with self.captured_output() as (out, err):
+            self.amity_object.print_allocations()
+
+            output = out.getvalue()
+
+        self.assertEqual(output, "\nTESTROOM\n-------------------------------------\n" +
+                                 "TEST PERSON-A, TEST PERSON-B, TEST PERSON-C, " +
+                                 "TEST PERSON-D, TEST PERSON-E, TEST PERSON-F\n"
+                         )
+
+    def test_it_writes_allocations_to_file(self):
+        """
+        test_it_writes_allocations_to_file():
+        tests print_allocations(allocated_file_name="file.txt")
+        with destination file argument given
+        """
+        Amity.person_identifier = 0
+        Amity.rooms_list = [{}, {}]
+        Amity.people_list = [{}, {}]
+
+        file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        filename = os.path.join(file_path, 'text_files/allocations_file.txt')
+
+        if os.path.isfile(filename):
+            os.remove(filename)
+
+        self.office_object.create_room("TestRoom")
+        for i in ["-a", "-b", "-c", "-d", "-e", "-f"]:
+            name = "Test Person" + i
+            self.staff_object.add_person(name)
+
+        self.amity_object.print_allocations(allocated_file_name="allocations_file.txt")
 
         try:
-            file_object = open("../text_files/allocations_file.txt", "r")
+            file_object = open(filename, "r")
             try:
                 lines_list = file_object.readlines()
 
@@ -268,10 +301,10 @@ class TestAmity(TestCase):
 
         except IOError as e:
             print(str(e))
-        self.assertIn(lines_list, "TestRoom\n" and
+        self.assertIn("TESTROOM\n" and
                       "-------------------------------------\n" and
-                      "Test Person1, Test Person2, Test Person3, " +
-                      "Test Person4, Test Person5, Test Person6\n")
+                      "TEST PERSON-A, TEST PERSON-B, TEST PERSON-C, " +
+                      "TEST PERSON-D, TEST PERSON-E, TEST PERSON-F", lines_list)
 
     # tests whether method confirms existence of unallocated
     # people before attempting to print the list
@@ -382,21 +415,21 @@ class TestAmity(TestCase):
     def test_it_prints_room(self):
         """
         test_it_prints_room():
-
+        tests whether print_room() works properly
         """
         Amity.rooms_list = [{}, {}]
         Amity.people_list = [{}, {}]
 
         self.office_object.create_room("Krypton")
-        for i in range(4):
-            name = "Test Person" + str(i)
+        for i in ["-a", "-b", "-c"]:
+            name = "Test Person" + i
             self.staff_object.add_person(name)
 
         with self.captured_output() as (out, err):
-            self.amity_object.print_room("Krypton")
+            self.amity_object.print_room("KRYPTON")
 
-        output = out.getvalue().strip()
-        self.assertEqual(output, "Test Person1\nTest Person2\nTest Person3\n")
+            output = out.getvalue()
+            self.assertEqual(output, "TEST PERSON-A\nTEST PERSON-B\nTEST PERSON-C\n")
 
     # tests save state to default db
     def test_it_saves_state_to_default_db(self):
@@ -409,6 +442,7 @@ class TestAmity(TestCase):
         if os.path.isfile(filename):
             os.remove(filename)
 
+        Amity.person_identifier = 0
         Amity.rooms_list = [{}, {}]
         Amity.people_list = [{}, {}]
 
@@ -471,6 +505,7 @@ class TestAmity(TestCase):
         if os.path.isfile(filename):
             os.remove(filename)
 
+        Amity.person_identifier = 0
         Amity.rooms_list = [{}, {}]
         Amity.people_list = [{}, {}]
 
@@ -480,7 +515,7 @@ class TestAmity(TestCase):
         self.staff_object.add_person("Josh Jebs")
         self.fellow_object.add_person("Sarah Munene", "Y")
 
-        self.amity_object.save_state("specified.db")
+        self.amity_object.save_state(destination_db="specified.db")
 
         results_list = []
 
