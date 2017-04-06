@@ -26,6 +26,13 @@ class Office(Room):
         """
 
         self.room_name = name.upper()
+
+        if self.room_name in Amity.rooms_list[0].keys() or\
+           self.room_name in Amity.rooms_list[1].keys():
+
+            return "Room name " + self.room_name + " already exists in the system"
+
         Amity.rooms_list[1][self.room_name] = []
+
         return "Office room " + self.room_name + " was created successfully"
 
