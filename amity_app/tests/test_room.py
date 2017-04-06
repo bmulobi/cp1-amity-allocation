@@ -176,7 +176,7 @@ class TestRoom(TestCase):
 
         self.livingspace_object.create_room("Hostel")
 
-        self.assertIn("Hostel", Amity.rooms_list[0].keys())
+        self.assertIn("HOSTEL", Amity.rooms_list[0].keys())
 
     def test_create_room_in_office_rejects_duplicate_room_names(self):
         """
@@ -187,7 +187,7 @@ class TestRoom(TestCase):
 
         self.office_object.create_room("Krypton")
         self.assertEqual(self.office_object.create_room("Krypton"),
-                         "Room name already exists",
+                         "Room name KRYPTON already exists in the system",
                          msg="Could not reject duplicate room name")
 
     def test_create_room_in_livingspace_rejects_duplicate_room_names(self):
@@ -198,8 +198,8 @@ class TestRoom(TestCase):
         Amity.rooms_list = [{}, {}]
 
         self.livingspace_object.create_room("Hostel")
-        self.assertEqual(self.office_object.create_room("Hostel"),
-                         "Room name already exists",
+        self.assertEqual(self.livingspace_object.create_room("Hostel"),
+                         "Room name HOSTEL already exists in the system",
                          msg="Could not reject duplicate room name")
 
 
