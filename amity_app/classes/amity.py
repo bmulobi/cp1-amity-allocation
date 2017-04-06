@@ -125,6 +125,8 @@ class Amity(object):
                                                            person_identifier,
                                                            room_name):
         """
+        person_identifier: Person's unique ID
+        room_name: room to reallocate to
         Returns:
         True -  if we try to allocate person to a room
                 where they are already allocated.
@@ -139,7 +141,8 @@ class Amity(object):
             if person_identifier in Amity.rooms_list[0][room_name]:
                 return True
         return False
-    # getsperson's identifier given the name and role
+
+    # gets person's identifier given the name and role
     def fetch_person_identifier(self, person_name, role):
         """
         returns: uses name and role to
@@ -176,7 +179,7 @@ class Amity(object):
             return "Room " + new_room_name + " does not exist in the system"
         # check if room has space
         if not self.confirm_specific_room_has_space(new_room_name):
-            return new_room_name.upper() + " is fully occupied"
+            return new_room_name + " is fully occupied"
 
         if self.confirm_person_not_doubly_reallocated_to_same_room(person_identifier, new_room_name):
             return "Person is already allocated to room " + new_room_name
@@ -387,49 +390,58 @@ class Amity(object):
         """
         :return: list of rooms with allocations if any
         """
-        if self.confirm_existence_of_allocations():
-            offices_list, living_spaces_list = self.search_rooms_list()
-            for room in offices_list:
-                if len(Amity.rooms_list[1][room]) > 0:
-                    self.offices_with_allocations.append(room)
-            for room in living_spaces_list:
-                if len(Amity.rooms_list[0][room]) > 0:
-                    self.livingspaces_with_allocations.append(room)
+        offices_list, living_spaces_list = self.search_rooms_list()
+        for room in offices_list:
+            if len(Amity.rooms_list[1][room]) > 0:
+                self.offices_with_allocations.append(room)
+        for room in living_spaces_list:
+            if len(Amity.rooms_list[0][room]) > 0:
+                self.livingspaces_with_allocations.append(room)
         return self.livingspaces_with_allocations, self.offices_with_allocations
 
     # prints all allocations in the system
     def print_allocations(self, allocated_file_name=""):
         """
+        Prints allocations to the screen or
+        writes to file if file name is given
         """
-        allocations_list = []
+
+        # first check if there are any allocations
         if self.confirm_existence_of_allocations():
-            offices_list, living_spaces_list = self.search_rooms_list()
+
+            living_spaces_list, offices_list = self.fetch_rooms_with_allocations()
+
+            # check if file name was given
             if allocated_file_name:
+                file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+                filename = os.path.join(file_path, "text_files/" + allocated_file_name)
+
                 try:
-                    file_object = open("../text_files/"+
-                                       allocated_file_name, "w")
+                    file_object = open(filename, "w")
                     try:
                         for key in offices_list:
-                            file_object.write(key+"\n-----------------"+
-                                              "--------------------\n")
-                            list_length = len(Amity.rooms_list[1])
+
+                            file_object.write(key + "\n")
+                            file_object.write("-------------------------------------\n")
+                            list_length = len(Amity.rooms_list[1][key])
+
                             i = 1
                             for value in Amity.rooms_list[1][key]:
+
+                                names_string = ""
                                 if i < list_length:
-                                    if value.split("-")[0] == "s":
-                                        file_object.write(Amity.people_list[0]
-                                                          [value][0]+", ")
+                                    if value.startswith("s"):
+                                        names_string += Amity.people_list[1][value][0] + ", "
                                     else:
-                                        file_object.write(Amity.people_list[1]
-                                                          [value][0]+", ")
+                                        names_string += Amity.people_list[0][value][0] + ", "
                                 else:
-                                    if value.split("-")[0] == "s":
-                                        file_object.write(Amity.people_list[0]
-                                                          [value][0])
+                                    if value.startswith("s"):
+                                        names_string += Amity.people_list[1][value][0]
                                     else:
-                                        file_object.write(Amity.people_list[1]
-                                                          [value][0])
+                                        names_string += Amity.people_list[0][value][0]
                                 i += 1
+
+                                file_object.write(names_string)
 
                     finally:
                         file_object.close()
@@ -438,29 +450,31 @@ class Amity(object):
 
             else:
 
-                people_string = ""
                 for key in offices_list:
-                    allocations_list.append(key+"\n")
-                    allocations_list.append("-----------------" +
-                                            "--------------------\n")
-                    list_length = len(Amity.rooms_list[1])
+
+                    print("\n" + key)
+                    print("-------------------------------------")
+                    list_length = len(Amity.rooms_list[1][key])
+
                     i = 1
+                    names_string = ""
                     for value in Amity.rooms_list[1][key]:
+
                         if i < list_length:
-                            if value.split("-")[0] == "s":
-                                people_string += Amity.people_list[1][value][0]+", "
+                            if value.startswith("s"):
+                                names_string += Amity.people_list[1][value][0] + ", "
                             else:
-                                people_string += Amity.people_list[0][value][0]+", "
-                            allocations_list.append(people_string)
+                                names_string += Amity.people_list[0][value][0] + ", "
+
                         else:
-                            if value.split("-")[0] == "s":
-                                people_string += Amity.people_list[1][value][0]
+                            if value.startswith("s"):
+                                names_string += Amity.people_list[1][value][0]
                             else:
-                                people_string += Amity.people_list[0][value][0]
-                            allocations_list.append(people_string)
+                                names_string += Amity.people_list[0][value][0]
+
                         i += 1
 
-                return allocations_list
+                    print(names_string)
 
     # verifies whether unallocated people exist
     def confirm_existence_of_unallocated(self):
@@ -592,10 +606,36 @@ class Amity(object):
     # prints allocations for given room
     def print_room(self, room_name):
         """
-
-        :param room_name:
-        :return:
+        :param room_name: room to print allocations from
+        :return: prints output to screen
         """
+        if self.confirm_room_name(room_name):
+
+            if self.confirm_existence_of_allocations_for_particular_room(room_name):
+
+                if self.fetch_room_type(room_name) == "office":
+
+                    for name in Amity.rooms_list[1][room_name]:
+
+                        if name.startswith("s"):
+                            print(Amity.people_list[1][name][0])
+                        else:
+                            print(Amity.people_list[0][name][0])
+                else:
+
+                    for name in Amity.rooms_list[0][room_name]:
+
+                        print(Amity.people_list[0][name][0])
+            else:
+                print(room_name, " has no allocations currently")
+        else:
+            print(room_name, " does not exist in the system")
+
+
+
+
+
+
 
         return "print_room() was called successfully with arg " + room_name
 
