@@ -1,3 +1,4 @@
+import os
 from unittest import TestCase
 
 from amity_app.classes.room import Room
@@ -15,10 +16,23 @@ class TestRoom(TestCase):
     """
     def setUp(self):
         """
-        set up some required properties for the tests
+        Method instantiates class objects
+        that will be used in the test cases
         """
-        self.office_object = Office()
-        self.livingspace_object = LivingSpace()
+
+        self.amity_object = Amity()
+        self.office_object = Office("Krypton")
+        self.livingspace_object = LivingSpace("Hostel")
+
+        Amity.fellows = {}
+        Amity.staff = {}
+        Amity.offices = {}
+        Amity.living_spaces = {}
+
+    def tearDown(self):
+        del self.amity_object
+        del self.office_object
+        del self.livingspace_object
 
     # helper method for testing abstract classes
     def check_abstract_class_instantiation(self, class_to_check):
@@ -37,7 +51,7 @@ class TestRoom(TestCase):
         """
 
         try:
-            self.class_object = class_to_check("John", "staff")
+            self.class_object = class_to_check("Valhalla")
 
         except TypeError:
             return False
@@ -153,54 +167,3 @@ class TestRoom(TestCase):
         """
 
         self.assertEqual(self.check_abstract_class_instantiation(Room), False)
-
-    def test_create_room_in_office(self):
-        """
-        test_create_room_in_office():
-        tests whether create_room() in
-         office creates a room properly
-        """
-        Amity.rooms_list = [{}, {}]
-
-        self.office_object.create_room("Krypton")
-
-        self.assertIn("KRYPTON", Amity.rooms_list[1].keys())
-
-    def test_create_room_in_livingspace(self):
-        """
-        test_create_room_in_livingspace():
-        tests whether create_room() in
-        livingspace creates a room properly
-        """
-        Amity.rooms_list = [{}, {}]
-
-        self.livingspace_object.create_room("Hostel")
-
-        self.assertIn("Hostel", Amity.rooms_list[0].keys())
-
-    def test_create_room_in_office_rejects_duplicate_room_names(self):
-        """
-        test_create_room_in_office_rejects_duplicate_room_names():
-        check whether create room checks for duplicate room names
-        """
-        Amity.rooms_list = [{}, {}]
-
-        self.office_object.create_room("Krypton")
-        self.assertEqual(self.office_object.create_room("Krypton"),
-                         "Room name already exists",
-                         msg="Could not reject duplicate room name")
-
-    def test_create_room_in_livingspace_rejects_duplicate_room_names(self):
-        """
-        test_create_room_in_livingspace_rejects_duplicate_room_names():
-        check whether create room checks for duplicate room names
-        """
-        Amity.rooms_list = [{}, {}]
-
-        self.livingspace_object.create_room("Hostel")
-        self.assertEqual(self.office_object.create_room("Hostel"),
-                         "Room name already exists",
-                         msg="Could not reject duplicate room name")
-
-
-

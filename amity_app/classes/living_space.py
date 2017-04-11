@@ -1,26 +1,21 @@
 from amity_app.classes.room import Room
-from amity_app.classes.amity import Amity
 
 
 class LivingSpace(Room):
     """
     child class of class Room
     defines a room that is a living space
+    Contains create_room() the creates a room of type
+    living space
     """
 
-    def __init__(self, room_type="livingspace", room_capacity=4):
-
+    def __init__(self, name):
+        """
+        :param name: name of room
         """
 
-        :param room_type:
-        """
+        self.room_name = name.upper()
+        self.room_type = "LIVINGSPACE"
+        self.room_capacity = 4
+        self.allocations = []
 
-        self.room_name = ""
-        self.room_type = room_type
-        self.room_capacity = room_capacity
-
-    def create_room(self, room_name):
-        self.room_name = room_name
-        Amity.rooms_list[0][self.room_name] = []
-
-        return "Living space room " + self.room_name + " was created successfully"

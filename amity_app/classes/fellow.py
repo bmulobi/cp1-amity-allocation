@@ -35,7 +35,6 @@ class Fellow(Person):
             return 0, ("Avoid any of the following characters in name: + ? . *  ^ $ "
                        "( ) \ [ ] { } | \  [0-9] ` ~ ! @ # % _ = ; : \" , < . > /")
 
-
         # ensure wants accommodation option is either (Y or N) or (y or n)
         if self.accommodation not in["Y", "N", "y", "n"]:
             return 0, "Accommodation option should be either (Y or N) or (y or n)"
@@ -49,7 +48,7 @@ class Fellow(Person):
 
         # insert new person into fellows dictionary with id as key
         Amity.people_list[0][self.person_id] = [self.name]
-        self.return_message += self.name + " was added successfully as a fellow\n"
+        self.return_message += self.name + " with ID " + self.person_id + " was added successfully as a fellow\n"
         # append accommodation preferences to list
         if self.accommodation == "Y":
             Amity.people_list[0][self.person_id].append("Y")
@@ -67,8 +66,11 @@ class Fellow(Person):
                     if room[1] > 0:
                         Amity.rooms_list[1][room[0]].append(self.person_id)
                         room[1] -= 1
+                        Amity.people_list[0][self.person_id].append("office")
                         self.return_message += "and allocated to office " + room[0] + "\n"
                         break
+            else:
+                Amity.people_list[0][self.person_id].append(0)
             # check if fellow wants accommodation
             if self.accommodation == "Y":
                 # if there's a living space with space, allocate to fellow
@@ -77,7 +79,12 @@ class Fellow(Person):
                         if room[1] > 0:
                             Amity.rooms_list[0][room[0]].append(self.person_id)
                             room[1] -= 1
+                            Amity.people_list[0][self.person_id].append("livingspace")
                             self.return_message += "and living space " + room[0] + "\n"
                             break
+                else:
+                    Amity.people_list[0][self.person_id].append(0)
+            else:
+                Amity.people_list[0][self.person_id].append(0)
 
         return self.person_id, self.return_message

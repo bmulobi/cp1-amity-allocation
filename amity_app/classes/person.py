@@ -1,18 +1,15 @@
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta
 
 
 class Person(metaclass=ABCMeta):
     """
-    Base class for
+    Base class for Staff and Fellow
+    defines common attributes of a person
     """
-
-    # __metaclass__ = ABCMeta
 
     def __init__(self):
         self.name = ""
         self.person_role = ""
         self.person_id = ""
+        self.has_office = 0
 
-    @abstractmethod
-    def add_person(self, name):
-        pass
