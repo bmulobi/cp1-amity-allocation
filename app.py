@@ -1,7 +1,7 @@
 
 """
 This example uses docopt with the built in cmd module to demonstrate an
-interactive todo list command application.
+interactive room allocation application.
 Usage:
     app.py create_room (office|living_space) <room_name>...
     app.py add_person <first_name> <last_name> (staff|fellow) [<wants_accommodation>]
@@ -61,14 +61,14 @@ def docopt_cmd(func):
 
 def start():
     os.system("clear")
-    intro = 'Welcome to my interactive program!'
-    prompt = 'learning_map>>>'
+    intro = "Welcome to Amity Room Allocation System"
+    prompt = "Amity -->"
     print(__doc__)
 
 
 class ToDo(cmd.Cmd):
     intro = "Welcome to the Amity Room Allocation System\n"
-    prompt = "\nEnter a command  >>> "
+    prompt = "\n Enter a command --> "
 
     @docopt_cmd
     def do_add_person(self, arg):
