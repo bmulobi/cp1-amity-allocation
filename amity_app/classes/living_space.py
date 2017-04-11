@@ -1,5 +1,4 @@
 from amity_app.classes.room import Room
-from amity_app.classes.amity import Amity
 
 
 class LivingSpace(Room):
@@ -10,24 +9,13 @@ class LivingSpace(Room):
     living space
     """
 
-    def __init__(self, room_type="livingspace", room_capacity=4):
+    def __init__(self, name):
         """
-        :param room_type: sets the room type
-        :param room_capacity: sets the room capacity
+        :param name: name of room
         """
 
-        self.room_name = ""
-        self.room_type = room_type
-        self.room_capacity = room_capacity
+        self.room_name = name.upper()
+        self.room_type = "LIVINGSPACE"
+        self.room_capacity = 4
+        self.allocations = []
 
-    def create_room(self, room_name):
-        self.room_name = room_name.upper()
-
-        if self.room_name in Amity.rooms_list[0].keys() or\
-           self.room_name in Amity.rooms_list[1].keys():
-
-            return "Room name " + self.room_name + " already exists in the system"
-
-        Amity.rooms_list[0][self.room_name] = []
-
-        return "Living space room " + self.room_name + " was created successfully"
