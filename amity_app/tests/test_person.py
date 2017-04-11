@@ -1,3 +1,4 @@
+import os
 from unittest import TestCase
 
 from amity_app.classes.person import Person
@@ -13,11 +14,23 @@ class TestPerson(TestCase):
 
     def setUp(self):
         """
-        set up some required properties for the tests
-
+        Method instantiates class objects
+        that will be used in the test cases
         """
-        self.fellow_object = Fellow()
-        self.staff_object = Staff()
+
+        self.amity_object = Amity()
+        self.fellow_object = Fellow("Ben")
+        self.staff_object = Staff("Sally")
+
+        Amity.fellows = {}
+        Amity.staff = {}
+        Amity.offices = {}
+        Amity.living_spaces = {}
+
+    def tearDown(self):
+        del self.amity_object
+        del self.staff_object
+        del self.fellow_object
 
     # helper method for testing abstract classes
     def check_abstract_class_instantiation(self, class_to_check):
@@ -36,7 +49,7 @@ class TestPerson(TestCase):
         """
 
         try:
-            self.class_object = class_to_check("John", "staff")
+            self.class_object = class_to_check("Ben")
 
         except TypeError:
             return False
@@ -151,61 +164,3 @@ class TestPerson(TestCase):
         """
 
         self.assertEqual(self.check_abstract_class_instantiation(Person), False)
-
-    # Method tests if add_person() works properly
-    def test_add_person_in_class_fellow(self):
-        """
-        test_add_person_in_class_fellow():
-        tests whether add_person() in fellow adds a
-         fellow properly
-        """
-
-        Amity.person_identifier = 0
-        Amity.people_list = [{}, {}]
-        self.fellow_object.add_person("BEN MAN", "Y")
-
-        self.assertIn("BEN MAN" and "Y", Amity.people_list[0]["f-1"])
-
-    # Method tests if add_person() works properly
-    def test_add_person_in_class_staff(self):
-        """
-        test_add_person_in_class_staff():
-        tests whether add_person() in staff adds a
-         staff member properly
-        """
-
-        Amity.person_identifier = 0
-        Amity.people_list = [{}, {}]
-        self.staff_object.add_person("JACKIE CHAN")
-
-        self.assertIn("JACKIE CHAN", Amity.people_list[1]["s-1"])
-
-    # ensure fellow's name is acceptable format
-    def test_add_person_in_fellow_rejects_illegal_characters_in_person_name(self):
-        """
-        test_add_person_in_fellow_rejects_illegal_characters_in_person_name():
-        test whether add_person() in class fellow rejects following characters
-        in person name
-        ( + ? . *  ^ $  ( ) \ [ ] { } | \ ) [0-9] ` ~ ! @ # % _ = ; : \" , < . > /
-        """
-        id, msg = self.fellow_object.add_person("BEn*&^%#W@^((_)(653132", "Y")
-        self.assertEqual(msg, "Avoid any of the following characters in name: + ? . *  ^ $ "
-                         "( ) \ [ ] { } | \  [0-9] ` ~ ! @ # % _ = ; : \" , < . > /",
-                         msg="Output not equal to expected output")
-
-    # ensure staff's name is acceptable format
-    def test_add_person_in_staff_rejects_illegal_characters_in_person_name(self):
-        """
-        test_add_person_in_staff_rejects_illegal_characters_in_person_name():
-        test whether add_person() in class fellow rejects following characters
-        in person name
-        ( + ? . *  ^ $  ( ) \ [ ] { } | \ ) [0-9] ` ~ ! @ # % _ = ; : \" , < . > /
-        """
-        id, msg = self.staff_object.add_person("BEn*&^%#W@^((_)(653132")
-        self.assertEqual(msg, "Avoid any of the following characters in name: + ? . *  ^ $ "
-                         "( ) \ [ ] { } | \  [0-9] ` ~ ! @ # % _ = ; : \" , < . > /",
-                         msg="Output not equal to expected output")
-
-
-
-
