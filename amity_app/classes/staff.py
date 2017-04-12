@@ -7,6 +7,7 @@ class Staff(Person):
     """
 
     def __init__(self, name):
+
         self.name = name.upper()
         self.person_role = "STAFF"
         self.person_id = ""
