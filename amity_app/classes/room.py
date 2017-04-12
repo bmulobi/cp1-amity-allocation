@@ -11,4 +11,5 @@ class Room(metaclass=ABCMeta):
         """
         constructor to initialise room name
         """
+
         self.room_name = ""
