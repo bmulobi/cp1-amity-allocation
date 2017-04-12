@@ -8,6 +8,7 @@ class Person(metaclass=ABCMeta):
     """
 
     def __init__(self):
+
         self.name = ""
         self.person_role = ""
         self.person_id = ""
