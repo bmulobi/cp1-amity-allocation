@@ -6,14 +6,14 @@ Usage:
     app.py create_room (office|living_space) <room_name>...
     app.py add_person <first_name> <last_name> (staff|fellow) [<wants_accommodation>]
     app.py get_person_identifier <first_name> <last_name> (staff|fellow)
-    app.py see_person_status <person_identifier>
+    app.py see_person_allocations <person_identifier>
     app.py see_rooms_with_space [offices|living_spaces]
     app.py reallocate_person <person_identifier> <new_room_name>
     app.py load_people <file_name>
-    app.py print_allocations [-o=filename]
-    app.py print_unallocated [-o=filename]
+    app.py print_allocations [--o=filename]
+    app.py print_unallocated [--o=filename]
     app.py print_room <room_name>
-    app.py save_state [-db=sqlite_database]
+    app.py save_state [--db=sqlite_database]
     app.py load_state <sqlite_database>
     app.py (-i | --interactive)
     app.py (-h | --help | --version)
@@ -111,10 +111,12 @@ class ToDo(cmd.Cmd):
 
     @docopt_cmd
     def do_print_allocations(self, arg):
-        """Usage: print_allocations [-o <filename>]"""
+        """Usage: print_allocations [--o=filename]"""
 
-        if arg["<filename>"]:
-            file_name = arg["<filename>"]
+        print(arg)
+
+        if arg["--o"]:
+            file_name = arg["--o"]
         else:
             file_name = ""
 
@@ -122,11 +124,11 @@ class ToDo(cmd.Cmd):
 
     @docopt_cmd
     def do_print_unallocated(self, arg):
-        """Usage: print_unallocated [-o <filename>]"""
+        """Usage: print_unallocated [--o=filename]"""
 
         file_name = ""
-        if arg["<filename>"]:
-            file_name = arg["<filename>"]
+        if arg["--o"]:
+            file_name = arg["--o"]
 
         function.print_unallocated(destination_file_name=file_name)
 
@@ -140,12 +142,12 @@ class ToDo(cmd.Cmd):
 
     @docopt_cmd
     def do_save_state(self, arg):
-        """Usage: save_state [-db <sqlite_database>]"""
+        """Usage: save_state [--db=sqlite_database]"""
 
         destination = ""
-        if arg["<sqlite_database>"]:
+        if arg["--db"]:
 
-            destination = arg["<sqlite_database>"]
+            destination = arg["--db"]
 
         print(function.save_state(destination_db=destination))
 
@@ -174,6 +176,15 @@ class ToDo(cmd.Cmd):
                 print("\n " + item)
         else:
             print(result)
+
+    @docopt_cmd
+    def do_see_person_allocations(self, arg):
+        """Usage: see_person_status <person_identifier>"""
+
+        person_identifier = arg["<person_identifier>"]
+
+        print(function.see_person_allocations(person_identifier))
+
 
 
 
