@@ -9,6 +9,7 @@ class LivingSpace(Room):
     living space
     """
 
+
     def __init__(self, name):
         """
         :param name: name of room
