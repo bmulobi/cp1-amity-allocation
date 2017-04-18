@@ -138,6 +138,7 @@ class TestAmity(TestCase):
         self.assertTrue(self.amity_object.confirm_specific_room_has_space("PENTAGON"),
                         msg="Expected output was not matched")
 
+
         for i in ["-a", "-b", "-c", "-d", "-e", "-f"]:
             person_name = "John" + i
             self.amity_object.add_person(person_name, "STAFF")

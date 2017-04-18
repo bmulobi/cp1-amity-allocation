@@ -147,6 +147,7 @@ class TestPerson(TestCase):
 
         self.assertTrue(type(self.staff_object) is Staff)
 
+
     # Method tests if class Person is abstract
     def test_person_is_abstract_class(self):
         """

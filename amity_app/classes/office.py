@@ -13,6 +13,7 @@ class Office(Room):
         :param room_capacity: 6 per office
         """
 
+
         self.room_name = name.upper()
         self.room_type = "OFFICE"
         self.room_capacity = 6

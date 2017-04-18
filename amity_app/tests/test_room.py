@@ -150,6 +150,7 @@ class TestRoom(TestCase):
 
         self.assertTrue(type(self.office_object) is Office)
 
+
     # Method tests if class Room is abstract
     def test_room_is_abstract_class(self):
         """

@@ -7,6 +7,7 @@ class Fellow(Person):
     """
 
     def __init__(self, name):
+
         self.name = name.upper()
         self.person_role = "FELLOW"
         self.accommodation = "N"

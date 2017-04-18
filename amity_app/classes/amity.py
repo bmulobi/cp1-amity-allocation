@@ -1202,6 +1202,7 @@ class Amity(object):
         first_name = first_name.upper()
         last_name = last_name.upper()
 
+        # check name format for illegal characters
         if re.search(self.regex_name, first_name + " " + last_name):
             return "\n Use letters only for person name"
 
@@ -1220,5 +1221,50 @@ class Amity(object):
                                         Amity.staff[person_id].name == first_name + " " + last_name]
 
         return self.fetched_identifiers
+
+    # gets person's allocation details
+    def see_person_allocations(self, person_id):
+        """
+        :param person_id:
+        :return:
+        """
+
+        # check id format
+        if not re.match(self.regex_person_id, person_id):
+            return "\n Person identifier looks something like s-1a or f-2a\nuse the " +\
+                   "<get_person_identifier> command to get a valid ID"
+
+        # verify person_identifier
+        if not self.confirm_person_identifier(person_id):
+            return "\n Person identifier does not exist in the system " + \
+                   "\n use the <get_person_identifier> command to get a valid ID"
+
+        msg = ""
+
+        # if person is staff, retrieve from staff dict
+        if person_id.startswith("s-"):
+            name = Amity.staff[person_id].name
+            office = Amity.staff[person_id].has_office
+
+            if office:
+                msg = "\n Staff member " + name + " is allocated to office " + office
+
+            else:
+                msg = "\n Staff member " + name + " is not yet allocated an office"
+
+
+        else:
+            # if person is fellow, retrieve from fellow dict
+            name = Amity.fellows[person_id].name
+            office = Amity.fellows[person_id].has_office
+            accommodation = Amity.fellows[person_id].has_accommodation
+            wants_accommodation = Amity.fellows[person_id].accommodation
+
+            msg += "\n Fellow " + name + " details:\n Office: " + str(office) + "\n Wants ccommodation: " + \
+                   wants_accommodation+ "\n Accommodation: " + str(accommodation)
+
+        return msg
+
+
 
 
