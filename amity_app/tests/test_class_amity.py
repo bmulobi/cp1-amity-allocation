@@ -82,14 +82,11 @@ class TestAmity(TestCase):
         test_amity_object_type():
         Method uses type() to check whether
         given object is of type Amity
-
-        Returns
+        :return:
         -------
         Boolean
-
         True : if it is of type Amity
         False : otherwise
-
         """
 
         self.assertTrue(type(self.amity_object) is Amity)
@@ -101,29 +98,24 @@ class TestAmity(TestCase):
         tests if confirm_person_identifier() works properly
         """
 
-        self.assertFalse(self.amity_object.confirm_person_identifier("s-1" + self.session_id),
+        self.assertFalse(self.amity_object.confirm_person_identifier_exists("s-1" + self.session_id),
                          msg="Method should return true if identifier exists")
 
         result = self.amity_object.add_person("Test Person", "STAFF")
 
-        self.assertTrue(self.amity_object.confirm_person_identifier(result[0]),
+        self.assertTrue(self.amity_object.confirm_person_identifier_exists(result[0]),
                         msg="Method should return true if identifier exists")
 
     # tests whether room name is verified
-    def test_confirms_room_name_as_valid(self):
+    def test_fetch_room_type_confirms_room_name_exists(self):
         """
         test_confirms_room_name_as_valid():
         tests if confirm_room_name() works properly
         """
         # verify room name when no rooms exist
-        self.assertFalse(self.amity_object.confirm_room_name("VALHALLA"),
+        self.assertFalse(self.amity_object.fetch_room_type("VALHALLA"),
                          msg="Method should return true if room name exists")
-        # create room VALHALLA
-        self.amity_object.create_room("OFFICE", ["VALHALLA"])
-        print(Amity.offices.keys())
-        # verify room name after room creation
-        self.assertTrue(self.amity_object.confirm_room_name("VALHALLA"),
-                        msg="Method should return true if room name exists")
+
 
     # tests whether given room is checked for space
     def test_confirms_specific_room_has_space(self):
@@ -233,21 +225,21 @@ class TestAmity(TestCase):
         self.amity_object.create_room("OFFICE", ["NEUTRONIC"])
 
         self.assertEqual(self.amity_object.load_people("test_file.txt"),
-                         "\n 2 people were loaded into the system",
+                         "\n 2 people were loaded into the system successfully",
                          msg="Output not equal to expected output")
 
     # tests whether method confirms existence of allocations
-    def test_confirms_existence_of_allocations_in_amity(self):
+    def test_print_allocations_confirms_existence_of_allocations_in_amity(self):
         """
         test_confirms_existence_of_allocations_in_amity():
         tests confirm_existence_of_allocations() works properly
         """
-        self.assertFalse(self.amity_object.confirm_existence_of_allocations(),
-                         msg="Could not confirm existence of allocations")
-        self.amity_object.create_room("OFFICE", ["TEST ROOM"])
-        result = self.amity_object.add_person("Test Person", "STAFF")
-        self.assertTrue(self.amity_object.confirm_existence_of_allocations(),
-                        msg="Could not confirm existence of allocations")
+        with self.captured_output() as (out, err):
+            self.amity_object.print_allocations()
+
+            output = out.getvalue()
+
+        self.assertEqual(output, "\n There are currently no allocations in the system\n")
 
     # tests if print_allocations works properly
     def test_it_prints_allocations_to_screen(self):
@@ -309,19 +301,14 @@ class TestAmity(TestCase):
 
     # tests whether method confirms existence of unallocated
     # people before attempting to print the list
-    def test_it_confirms_existence_of_unallocated_people(self):
+    def test_fetch_list_of_unallocated_people_confirms_existence_of_unallocated_people(self):
         """
         test_it_confirms_existence_of_unallocated_people():
         tests confirm_existence_of_unallocated()
         """
 
-        self.assertFalse(self.amity_object.confirm_existence_of_unallocated())
+        self.assertFalse(self.amity_object.fetch_list_of_unallocated_people())
 
-        for i in ["-a", "-b", "-c", "-d", "-e", "-f"]:
-            name = "Test Person" + i
-            self.amity_object.add_person(name, "STAFF")
-
-        self.assertTrue(self.amity_object.confirm_existence_of_unallocated())
 
     # tests whether print_unallocated() prints
     # to screen
@@ -423,9 +410,9 @@ class TestAmity(TestCase):
             self.assertEqual(output, "\n TEST PERSON-A\n\n TEST PERSON-B\n\n TEST PERSON-C\n")
 
     # tests data validation by print_room
-    def test_print_room_rejects_unreasonable_room_names(self):
+    def test_print_room_validates_room_names(self):
         """
-        test_print_room_rejects_unreasonable_room_names():
+        test_print_room_validates_room_names():
         tests if print_room() validates room names
         :return:
         """
@@ -435,7 +422,7 @@ class TestAmity(TestCase):
             self.amity_object.print_room("kjlhfvg(*&^&%$89665544")
             output = out.getvalue()
 
-            self.assertEqual(output, "\n Use letters only for room names\n",
+            self.assertEqual(output, "\n Use letters and/or digits only for room names\n",
                              msg="Output not equal to expected error message")
 
     # tests room name verification by print_room
@@ -450,7 +437,7 @@ class TestAmity(TestCase):
             self.amity_object.print_room("TEST ROOM")
             output = out.getvalue()
 
-            self.assertEqual(output, "\n TEST ROOM does not exist in the system\n",
+            self.assertEqual(output, "\n Room TEST ROOM does not exist in the system\n",
                              msg="Output not equal to expected error message")
 
     # tests save state to default db
@@ -655,25 +642,15 @@ class TestAmity(TestCase):
         self.assertEqual(self.amity_object.get_person_identifier("ben", "man*&^%^$809", "fellow"),
                          "\n Use letters only for person name", msg="Could not verify output")
 
-    # test get_person_identifier() for data validation
-    def test_get_person_identifier_validates_role(self):
-        """
-        test_get_person_identifier_validates_role()
-        ensure role is either fellow or staff
-        :return: relevant message
-        """
-        self.assertEqual(self.amity_object.get_person_identifier("ben", "man", "fello"),
-                         "\n Role must be either fellow or staff", msg="Could not verify output")
-
     # test get identifier for correctness
-    def test_get_person_identifier_works_well(self):
+    def test_get_person_identifier_returns_correct_person_id(self):
         """
-        test_get_person_identifier_works_well
+        test_get_person_identifier_returns_correct_person_id
         :return:
         """
-        result = self.amity_object.add_person("Ben Man", "fellow", "y")
+        result = self.amity_object.add_person("Ben Man", "FELLOW", "y")
 
-        self.assertEqual(result[0], self.amity_object.get_person_identifier("Ben", "Man", "fellow")[0])
+        self.assertIn(result[0], self.amity_object.get_person_identifier("Ben", "Man", "fellow"))
 
 
 
