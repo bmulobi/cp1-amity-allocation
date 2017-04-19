@@ -279,13 +279,50 @@ class ToDo(cmd.Cmd):
         else:
             print("\n There are no people in the system")
 
+    @docopt_cmd
+    def do_see_all_rooms(self, arg):
+        """USage: see_all_rooms [(offices|livingspaces)]"""
 
+        if arg["offices"]:
+            argument = "offices"
+        elif arg["livingspaces"]:
+            argument = "livingspaces"
+        else:
+            argument = ""
 
+        result = function.see_all_rooms(room_type=argument)
 
+        if argument == "offices" and result:
+            for office in result:
+                print(office)
 
+        elif argument == "offices" and not result:
+            print("\n There are no offices in the system")
 
+        elif argument == "livingspaces" and result:
+            for livingspace in result:
+                print(livingspace)
 
+        elif argument == "livingspaces" and not result:
+            print("\n There are no livingspaces in the system")
 
+        elif len(result) and (result[0] or result[1]):
+            for livingspace in result[0]:
+                print(livingspace)
+            for office in result[1]:
+                print(office)
+
+        else:
+            print("\n There are no rooms in the system")
+
+    @docopt_cmd
+    def do_remove_person(self, arg):
+        """Usage: remove_person <person_identifier>"""
+
+        person_id = arg["<person_identifier>"]
+
+        result = function.remove_person(person_id)
+        print(result)
 
     def do_quit(self, arg):
         """Quits out of Interactive Mode."""
