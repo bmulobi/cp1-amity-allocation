@@ -240,6 +240,7 @@ class Amity(object):
                 format_error_room_names.append(name)
                 continue
             if len(name) > 35:
+                format_error_room_names.append(name)
                 continue
             if name in Amity.offices.keys() or name in Amity.living_spaces.keys():
                 already_existing_rooms.append(name)
