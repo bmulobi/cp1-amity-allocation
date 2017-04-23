@@ -3,6 +3,8 @@ import sqlite3
 import re
 import random
 
+from termcolor import colored, cprint
+
 from amity_app.classes.fellow import Fellow
 from amity_app.classes.staff import Staff
 from amity_app.classes.office import Office
@@ -270,7 +272,7 @@ class Amity(object):
                           str(len(already_existing_rooms)) +\
                           " ,\n " + " ".join(already_existing_rooms) + "\n"
 
-        return success_msg + error_msg + failure_msg
+        return [success_msg, error_msg, failure_msg]
 
     # Confirms whether specific room has space for further allocations
     def confirm_specific_room_has_space(self, room_name):
@@ -561,17 +563,17 @@ class Amity(object):
         # first check if there are any allocations
         if result:
 
+            allocations = []
+
             # check if file name was given
             if allocated_file_name:
 
                 if not re.match(self.regex_filename, allocated_file_name):
-                    print("\n Supply a reasonable file name")
-                    return
+                    return "\n Supply a reasonable file name"
 
                 # check file type
                 if not allocated_file_name.endswith(".txt"):
-                    print("\n Destination must be a txt file")
-                    return
+                    return "\n Destination must be a txt file"
 
                 # set file path
                 file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -632,20 +634,20 @@ class Amity(object):
                             # write string of people names in current living space to file
                             file_object.write(names_string)
 
-                        print("\n Allocations were written successfully to ", filename)
+                        return "\n Allocations were written successfully to " + filename
 
                     finally:
                         file_object.close()
                 except IOError as e:
-                    print(str(e))
+                    return "FIle IOError - " + str(e)
 
             else:
 
                 for room in result[1]:
 
                     # print current room name (office) to screen
-                    print("\n" + room)
-                    print("-------------------------------------")
+                    allocations.append("\n" + room)
+                    allocations.append("-------------------------------------")
                     list_length = len(Amity.offices[room].allocations)
 
                     i = 1
@@ -669,13 +671,13 @@ class Amity(object):
                         i += 1
 
                     # print string of people names in current office to screen
-                    print(names_string)
+                    allocations.append(names_string)
 
                 for room in result[0]:
 
                     # print current room name (living space) to screen
-                    print("\n" + room)
-                    print("-------------------------------------")
+                    allocations.append("\n" + room)
+                    allocations.append("-------------------------------------")
                     list_length = len(Amity.living_spaces[room].allocations)
 
                     i = 1
@@ -692,9 +694,11 @@ class Amity(object):
 
                         i += 1
                     # print string of people names in current living space to screen
-                    print(names_string)
+                    allocations.append(names_string)
+
+                return allocations
         else:
-            print("\n There are currently no allocations in the system")
+            return "\n There are currently no allocations in the system"
 
     # returns list of unallocated people if any
     def fetch_list_of_unallocated_people(self):
@@ -741,33 +745,33 @@ class Amity(object):
 
         if result:
 
+            unallocated = []
+
             # if no file name given, print to screen
             if destination_file_name == "":
 
                 # print names of fellows who wanted living spaces and were not allocated if any
                 for person_id in result[0]:
-
-                    print("\n " + Amity.fellows[person_id].name + " - not allocated living space")
+                    unallocated.append("\n " + Amity.fellows[person_id].name + " - not allocated living space")
 
                 # print names of fellows without offices if any
                 for person_id in result[1]:
-                    print("\n " + Amity.fellows[person_id].name + " - not allocated office")
+                    unallocated.append("\n " + Amity.fellows[person_id].name + " - not allocated office")
 
                 # print names of staff without offices if any
                 for person_id in result[2]:
-                    print("\n " + Amity.staff[person_id].name + " - not allocated office")
+                    unallocated.append("\n " + Amity.staff[person_id].name + " - not allocated office")
+
+                return unallocated
 
             else:
 
                 if not re.match(self.regex_filename, destination_file_name):
-                    print("\n Supply a reasonable file name")
-                    return
+                    return  "\n Supply a reasonable file name"
 
                 # check file type
                 if not destination_file_name.endswith(".txt"):
-
-                    print("\n Destination must be a txt file")
-                    return
+                    return "\n Destination must be a txt file"
 
                 file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
                 filename = os.path.join(file_path, 'text_files/' + destination_file_name)
@@ -789,15 +793,15 @@ class Amity(object):
                         for person_id in result[2]:
                             file_object.write(Amity.staff[person_id].name + " - not allocated office\n")
 
-                        print("\n Unallocated people were written successfully to ", filename)
+                        return "\n Unallocated people were written successfully to " + filename
 
                     finally:
                         file_object.close()
 
                 except IOError as e:
-                    print("File access error - " + str(e))
+                    return "FIle IOError - " + str(e)
         else:
-            print("\n There are no unallocated people in the system")
+            return "\n There are no unallocated people in the system"
 
     # verifies whether room has allocations
     def confirm_existence_of_allocations_for_particular_room(self, room_name):
@@ -822,14 +826,15 @@ class Amity(object):
         :param room_name: room to print allocations from
         :return: prints output to screen
         """
+        names = []
 
         # validate room name
         if re.search(self.regex_room_name, room_name):
 
-            print("\n Use letters and/or digits only for room names")
+            return "\n Use letters and/or digits only for room names"
 
         elif len(room_name) > 40:
-            print("\n Room name should not be more than 40 characters")
+            return "\n Room name should not be more than 40 characters"
 
         else:
 
@@ -846,18 +851,19 @@ class Amity(object):
                         for person_id in Amity.offices[room_name].allocations:
 
                             if person_id.startswith("s"):
-                                print("\n " + Amity.staff[person_id].name)
+                                names.append("\n " + Amity.staff[person_id].name)
                             else:
-                                print("\n " + Amity.fellows[person_id].name)
+                                names.append("\n " + Amity.fellows[person_id].name)
                     else:
 
                         for person_id in Amity.living_spaces[room_name].allocations:
+                            names.append("\n " + Amity.fellows[person_id].name)
 
-                            print("\n " + Amity.fellows[person_id].name)
+                    return names
                 else:
-                    print("\n Room " + room_name + " has no allocations currently")
+                    return "\n Room " + room_name + " has no allocations currently"
             else:
-                print("\n Room " + room_name + " does not exist in the system")
+                return "\n Room " + room_name + " does not exist in the system"
 
     # creates required database
     def create_database(self, dbname):

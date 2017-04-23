@@ -1,0 +1,8 @@
+[report]
+    show_missing = False
+
+[run]
+omit =
+    *sqlite3.py*
+    *sqlite3/dbapi2.py*
+    *termcolor.py*

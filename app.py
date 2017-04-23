@@ -26,7 +26,10 @@ Usage:
 import os
 import sys
 import cmd
+
 from docopt import docopt, DocoptExit
+from termcolor import colored, cprint
+from tabulate import tabulate
 
 from amity_app.classes.amity import Amity
 
@@ -47,7 +50,7 @@ def docopt_cmd(func):
             # The DocoptExit is thrown when the args do not match.
             # We print a message to the user and the usage block.
 
-            print('\n Invalid Command!\n')
+            cprint('\n Invalid Command!\n', 'red')
             print(e)
             return
 
@@ -68,12 +71,12 @@ def start():
     os.system("clear")
     intro = "Welcome to Amity Room Allocation System"
     prompt = "Amity -->"
-    print(__doc__)
+    cprint(__doc__, 'green')
 
 
 class ToDo(cmd.Cmd):
-    intro = "Welcome to the Amity Room Allocation System\n"
-    prompt = "\n Enter a command --> "
+    intro = colored("\n Welcome to the Amity Room Allocation System\n", "blue")
+    prompt = colored("\n Enter a command --> ", "blue")
 
     @docopt_cmd
     def do_add_person(self, arg):
@@ -94,7 +97,16 @@ class ToDo(cmd.Cmd):
             accommodation = "N"
 
         result = function.add_person(name, role, wants_accommodation=accommodation)
-        print(result[1])
+
+        if result[1] in ["\n Use letters only for person name\n",
+                        "\n Names should not exceed 80 characters",
+                        "\n role must be staff or fellow",
+                        "\n Staff cannot be allocated living spaces\n"]:
+            color = "red"
+        else:
+            color = "green"
+
+        cprint(result[1], color)
 
     @docopt_cmd
     def do_create_room(self, arg):
@@ -108,7 +120,14 @@ class ToDo(cmd.Cmd):
         room_names = arg["<room_name>"]
 
         result = function.create_room(room_type, room_names)
-        print(result)
+
+        if result[0]:
+            cprint(result[0], "green")
+        if result[1]:
+            cprint(result[1], "red")
+        if result[2]:
+            cprint(result[2], "red")
+
 
     @docopt_cmd
     def do_reallocate_person(self, arg):
@@ -118,7 +137,26 @@ class ToDo(cmd.Cmd):
         new_room_name = arg["<new_room_name>"]
 
         result = function.reallocate_person(person_identifier, new_room_name)
-        print(result)
+
+        new_room_name = new_room_name = new_room_name.upper()
+
+        if result in ["\n Room name should consist of letters and/or digits only",
+                      "\n Room name should not exceed 40 characters",
+                      "\n Person identifier looks something like s-1a " + \
+                      "or f-2a\nuse the <get_person_identifier> command" + \
+                              " to get a valid ID",
+                      "\n Person identifier does not exist in the system " + \
+                      "\n use the <get_person_identifier> command to get a valid ID",
+                      "\n Room " + new_room_name + " is fully occupied",
+                      "\n Person is already allocated to room " + new_room_name,
+                      "\n Cannot reallocate a staff member to a living space",
+                      "\n Room " + new_room_name + " does not exist in the system"
+                      ]:
+            color = "red"
+        else:
+            color = "green"
+
+        cprint(result, color)
 
     @docopt_cmd
     def do_load_people(self, arg):
@@ -126,7 +164,22 @@ class ToDo(cmd.Cmd):
 
         file_name = arg["<file_name>"]
         result = function.load_people(file_name)
-        print(result)
+
+        if result in ["\n Supply a reasonable file name",
+                      "\n Supply a real file in the text_files folder",
+                      "\n Source must be a txt file",
+                      "\n Contents of text file are not in the correct format",
+                      "\n File is empty, has no contents"
+                      ]:
+            color = "red"
+
+        elif result == "\n There is no free space currently, use the create_room command to create new space":
+            color = "yellow"
+
+        else:
+            color = "green"
+
+        cprint(result, color)
 
     @docopt_cmd
     def do_print_allocations(self, arg):
@@ -137,7 +190,28 @@ class ToDo(cmd.Cmd):
         else:
             file_name = ""
 
-        function.print_allocations(allocated_file_name=file_name)
+        result = function.print_allocations(allocated_file_name=file_name)
+
+        if result in ["\n Supply a reasonable file name",
+                      "\n Destination must be a txt file"
+                      ]\
+                  or type(result) is str and result.startswith("FIle IOError - "):
+
+            color = "red"
+
+        elif result == "\n There are currently no allocations in the system":
+
+            color = "yellow"
+
+        else:
+
+            color = "green"
+
+        if type(result) is list:
+            for line in result:
+                cprint(line, color)
+        else:
+            cprint(result, color)
 
     @docopt_cmd
     def do_print_unallocated(self, arg):
@@ -147,7 +221,28 @@ class ToDo(cmd.Cmd):
         if arg["--o"]:
             file_name = arg["--o"]
 
-        function.print_unallocated(destination_file_name=file_name)
+        result = function.print_unallocated(destination_file_name=file_name)
+
+        if result in ["\n Supply a reasonable file name",
+                      "\n Destination must be a txt file"
+                      ]\
+                  or type(result) is str and result.startswith("FIle IOError - "):
+
+            color = "red"
+
+        elif result == "\n There are no unallocated people in the system":
+
+            color = "yellow"
+
+        else:
+
+            color = "green"
+
+        if type(result) is list:
+            for line in result:
+                cprint(line, color)
+        else:
+            cprint(result, color)
 
     @docopt_cmd
     def do_print_room(self, arg):
@@ -155,7 +250,27 @@ class ToDo(cmd.Cmd):
 
         room = arg["<room_name>"]
 
-        function.print_room(room)
+        result = function.print_room(room)
+
+        room = room.upper()
+
+        if result in ["\n Use letters and/or digits only for room names",
+                      "\n Room name should not be more than 40 characters"]:
+
+            color = "red"
+
+        elif result == "\n Room " + room + " does not exist in the system":
+
+            color = "yellow"
+
+        else:
+            color = "green"
+
+        if type(result) is list:
+            for line in result:
+                cprint("\n" + line, color)
+        else:
+            cprint(result, color)
 
     @docopt_cmd
     def do_save_state(self, arg):
@@ -166,7 +281,24 @@ class ToDo(cmd.Cmd):
 
             destination = arg["--db"]
 
-        print(function.save_state(destination_db=destination))
+        result = function.save_state(destination_db=destination)
+
+        if result in ["\n Supply a reasonable file name",
+                      "\n Destination must be a db file",
+                      "\n Failed to create database"
+                      ] \
+                or type(result) is str and result.startswith("\n An error"):
+
+            color = "red"
+
+        elif result == "\n There is no data in the system to save":
+
+            color = "yellow"
+
+        else:
+            color = "green"
+
+        cprint(result, color)
 
     @docopt_cmd
     def do_load_state(self, arg):
@@ -176,7 +308,23 @@ class ToDo(cmd.Cmd):
         if arg["<sqlite_database>"]:
             source = arg["<sqlite_database>"]
 
-        print(function.load_state(source_db=source))
+        result = function.load_state(source_db=source)
+
+        if result in ["\n Supply a reasonable file name",
+                      "\n File extension must be .db"
+                      ] \
+                or result.startswith("\n DB access error"):
+
+            color = "red"
+
+        elif result == "\n File does not exist":
+
+            color = "yellow"
+
+        else:
+            color = "green"
+
+        cprint(result, color)
 
     @docopt_cmd
     def do_get_person_identifier(self, arg):
@@ -192,11 +340,24 @@ class ToDo(cmd.Cmd):
 
         result = function.get_person_identifier(first_name, last_name, role)
 
+        if result in ["\n Use letters only for person name",
+                      "\n Person name should not exceed 100 characters"
+                      ]:
+
+            color = "red"
+
+        elif result == "\n Person does not exist in the system":
+
+            color = "yellow"
+
+        else:
+            color = "green"
+
         if type(result) is list:
             for item in result:
-                print("\n " + item)
+                cprint("\n " + item, color)
         else:
-            print(result)
+            cprint(result, color)
 
     @docopt_cmd
     def do_see_person_allocations(self, arg):
@@ -204,7 +365,20 @@ class ToDo(cmd.Cmd):
 
         person_identifier = arg["<person_identifier>"]
 
-        print(function.see_person_allocations(person_identifier))
+        result = function.see_person_allocations(person_identifier)
+
+        if result in ["\n Person identifier looks something like s-1a or f-2a\n use the " +\
+                      "<get_person_identifier> command to get a valid ID",
+                      "\n Person identifier does not exist in the system " + \
+                      "\n use the <get_person_identifier> command to get a valid ID"
+                      ]:
+
+            color = "red"
+
+        else:
+            color = "green"
+
+        cprint(result, color)
 
     @docopt_cmd
     def do_see_rooms_with_space(self, arg):
@@ -220,28 +394,28 @@ class ToDo(cmd.Cmd):
         result = function.see_rooms_with_space(room_type=argument)
 
         if result == "\n There are no rooms with space":
-            print(result)
+            cprint(result, "yellow")
 
         elif type(result) is list and type(result[0]) is list:
 
             if result[0]:
-                print("\n Living spaces with available space\n -----------------------------------------")
+                cprint("\n Living spaces with available space\n -----------------------------------------", "blue")
                 for room in result[0]:
-                    print("\n ", room)
+                    cprint("\n " + room, "green")
 
             if result[1]:
-                print("\n Offices with available space\n -----------------------------------------")
+                cprint("\n Offices with available space\n -----------------------------------------", "blue")
                 for room in result[1]:
-                    print("\n ", room)
+                    cprint("\n " + room, "green")
         else:
             if arg["offices"]:
-                print("\n Offices with available space\n -----------------------------------------")
+                cprint("\n Offices with available space\n -----------------------------------------", "blue")
                 for room in result:
-                    print("\n ", room)
+                    cprint("\n " + room, "green")
             if arg["livingspaces"]:
-                print("\n Living spaces with available space\n -----------------------------------------")
+                cprint("\n Living spaces with available space\n -----------------------------------------", "blue")
                 for room in result:
-                    print("\n ", room)
+                    cprint("\n " + room, "green")
 
     @docopt_cmd
     def do_see_all_people(self, arg):
@@ -256,28 +430,46 @@ class ToDo(cmd.Cmd):
 
         result = function.see_all_people(role=argument)
 
+        table_fellows = []
+        table_staff = []
+
         if argument == "fellows" and result:
             for name in result:
-                print(name)
+
+                row = name.split()
+                table_fellows.append([row[0], row[1] + " " + row[2], row[3]])
+
+            cprint(tabulate(table_fellows, headers=["PERSON ID", "NAME", "FELLOW"], tablefmt="fancy_grid"), "green")
 
         elif argument == "fellows" and not result:
-            print("\n There are no fellows in the system")
+            cprint("\n There are no fellows in the system", "yellow")
 
         elif argument == "staff" and result:
             for name in result:
-                print(name)
+                row = name.split()
+                table_staff.append([row[0], row[1] + " " + row[2], row[3]])
+
+            cprint(tabulate(table_staff, headers=["PERSON ID", "NAME", "ROLE"], tablefmt="fancy_grid"), "green")
 
         elif argument == "staff" and not result:
-            print("\n There are no staff in the system")
+            cprint("\n There are no staff in the system", "yellow")
 
         elif len(result) and (result[0] or result[1]):
+
             for name in result[0]:
-                print(name)
+
+                row = name.split()
+                table_fellows.append([row[0], row[1] + " " + row[2], row[3]])
+            cprint(tabulate(table_fellows, headers=["PERSON ID", "NAME", "ROLE"], tablefmt="fancy_grid"), "green")
+
             for name in result[1]:
-                print(name)
+
+                row = name.split()
+                table_staff.append([row[0], row[1] + " " + row[2], row[3]])
+            cprint(tabulate(table_staff, headers=["PERSON ID", "NAME", "ROLE"], tablefmt="fancy_grid"), "green")
 
         else:
-            print("\n There are no people in the system")
+            cprint("\n There are no people in the system", "yellow")
 
     @docopt_cmd
     def do_see_all_rooms(self, arg):
@@ -292,28 +484,50 @@ class ToDo(cmd.Cmd):
 
         result = function.see_all_rooms(room_type=argument)
 
+        tbl_offices = []
+        tbl_living_spaces = []
+
+        # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
         if argument == "offices" and result:
+
             for office in result:
-                print(office)
+
+                row = office.split("-")
+                tbl_offices.append([row[0].strip(), row[1].strip()])
+            cprint(tabulate(tbl_offices, headers=["ROOM NAME", "ROOM TYPE"], tablefmt="fancy_grid"), "green")
 
         elif argument == "offices" and not result:
-            print("\n There are no offices in the system")
+            cprint("\n There are no offices in the system", "yellow")
 
         elif argument == "livingspaces" and result:
+
             for livingspace in result:
-                print(livingspace)
+
+                row = livingspace.split("-")
+                tbl_living_spaces.append([row[0].strip(), row[1].strip()])
+            cprint(tabulate(tbl_living_spaces, headers=["ROOM NAME", "ROOM TYPE"], tablefmt="fancy_grid"), "green")
 
         elif argument == "livingspaces" and not result:
-            print("\n There are no livingspaces in the system")
+            cprint("\n There are no livingspaces in the system", "yellow")
 
         elif len(result) and (result[0] or result[1]):
+
             for livingspace in result[0]:
-                print(livingspace)
+                row = livingspace.split("-")
+                tbl_living_spaces.append([row[0].strip(), row[1].strip()])
+            cprint(tabulate(tbl_living_spaces, headers=["ROOM NAME", "ROOM TYPE"], tablefmt="fancy_grid"), "green")
+
             for office in result[1]:
-                print(office)
+                row = office.split("-")
+                tbl_offices.append([row[0].strip(), row[1].strip()])
+            cprint(tabulate(tbl_offices, headers=["ROOM NAME", "ROOM TYPE"], tablefmt="fancy_grid"), "green")
 
         else:
-            print("\n There are no rooms in the system")
+            cprint("\n There are no rooms in the system", "yellow")
+
+        # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
 
     @docopt_cmd
     def do_remove_person(self, arg):
@@ -322,7 +536,21 @@ class ToDo(cmd.Cmd):
         person_id = arg["<person_identifier>"]
 
         result = function.remove_person(person_id)
-        print(result)
+
+        if result == "\n Person identifier looks something like s-1a or f-2a\n use the " +\
+                      "<get_person_identifier> command to get a valid ID":
+
+            color = "red"
+
+        elif result == "\n Person identifier does not exist in system":
+
+            color = "yellow"
+
+        else:
+
+            color = "green"
+
+        cprint(result, color)
 
     def do_quit(self, arg):
         """Quits out of Interactive Mode."""
