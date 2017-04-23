@@ -46,25 +46,6 @@ class TestAmity(TestCase):
     def tearDown(self):
         del self.amity_object
 
-    # helper method to check print() output
-    @contextmanager
-    def captured_output(self):
-        """
-        method is used to capture the output
-        of print() statements from other methods
-        for purposes of testing with assert statements
-        it does this by temporarily substituting in built
-        stdout and stderr with instances of StringIO class
-
-        """
-        new_out, new_err = StringIO(), StringIO()
-        old_out, old_err = sys.stdout, sys.stderr
-        try:
-            sys.stdout, sys.stderr = new_out, new_err
-            yield sys.stdout, sys.stderr
-        finally:
-            sys.stdout, sys.stderr = old_out, old_err
-
     # Method tests if object is of class Amity
     def test_isinstance_of_amity_class(self):
         """
@@ -128,7 +109,7 @@ class TestAmity(TestCase):
         checks whether create_room() validates room names
         """
         self.assertEqual("\n Room names rejected due to format errors: 2 ,\n RED&* BLUE$%#\n",
-                      self.amity_object.create_room("OFFICE",["red&*", "blue$%#"]))
+                      self.amity_object.create_room("OFFICE",["red&*", "blue$%#"])[1])
 
     # tests create_room() rejects already existing room names
     def test_create_room_rejects_already_existing_room_names(self):
@@ -139,7 +120,7 @@ class TestAmity(TestCase):
         self.amity_object.create_room("OFFICE", ["red", "blue"])
 
         self.assertEqual("\n Room names rejected because they already exist: 2 ,\n RED BLUE\n",
-                      self.amity_object.create_room("OFFICE",["red", "blue"]))
+                      self.amity_object.create_room("OFFICE",["red", "blue"])[2])
 
     # tests create_room() creates offices successfully
     def test_create_room_creates_offices(self):
@@ -148,7 +129,7 @@ class TestAmity(TestCase):
         tests creation of offices
         """
         self.assertEqual("\n Successfully created offices: 2 ,\n RED BLUE\n",
-                         self.amity_object.create_room("OFFICE", ["red", "blue"]))
+                         self.amity_object.create_room("OFFICE", ["red", "blue"])[0])
 
     # tests create_room() creates living spaces successfully
     def test_create_room_creates_living_spaces_successfully(self):
@@ -157,8 +138,7 @@ class TestAmity(TestCase):
         tests creation of Living_spaces
         """
         self.assertEqual("\n Successfully created livingspaces: 2 ,\n RED BLUE\n",
-                         self.amity_object.create_room("LIVINGSPACE", ["red", "blue"]))
-
+                         self.amity_object.create_room("LIVINGSPACE", ["red", "blue"])[0])
 
     # tests whether given room is checked for space
     def test_confirms_specific_room_has_space(self):
@@ -277,12 +257,9 @@ class TestAmity(TestCase):
         test_confirms_existence_of_allocations_in_amity():
         tests confirm_existence_of_allocations() works properly
         """
-        with self.captured_output() as (out, err):
-            self.amity_object.print_allocations()
+        output = self.amity_object.print_allocations()
 
-            output = out.getvalue()
-
-        self.assertEqual(output, "\n There are currently no allocations in the system\n")
+        self.assertEqual(output, "\n There are currently no allocations in the system")
 
     # tests if print_allocations works properly
     def test_it_prints_allocations_to_screen(self):
@@ -297,15 +274,14 @@ class TestAmity(TestCase):
             name = "Test Person" + i
             self.amity_object.add_person(name.upper(), "STAFF")
 
-        with self.captured_output() as (out, err):
-            self.amity_object.print_allocations()
+        result = self.amity_object.print_allocations()
 
-            output = out.getvalue()
-
-        self.assertEqual(output, "\nTESTROOM\n-------------------------------------\n" +
-                                 "TEST PERSON-A, TEST PERSON-B, TEST PERSON-C, " +
-                                 "TEST PERSON-D, TEST PERSON-E, TEST PERSON-F\n"
-                         )
+        self.assertIn("\nTESTROOM" and
+                      "-------------------------------------" and
+                      "TEST PERSON-A, TEST PERSON-B, TEST PERSON-C, " +\
+                      "TEST PERSON-D, TEST PERSON-E, TEST PERSON-F",
+                      result
+                     )
 
     def test_it_writes_allocations_to_file(self):
         """
@@ -365,16 +341,13 @@ class TestAmity(TestCase):
             name = "Test Person" + i
             self.amity_object.add_person(name, "STAFF")
 
-        with self.captured_output() as (out, err):
-            self.amity_object.print_unallocated()
-
-            output = out.getvalue()
-            self.assertEqual(output, "\n TEST PERSON-A - not allocated office\n" +
-                             "\n TEST PERSON-B - not allocated office\n" +
-                             "\n TEST PERSON-C - not allocated office\n" +
-                             "\n TEST PERSON-D - not allocated office\n" +
-                             "\n TEST PERSON-E - not allocated office\n" +
-                             "\n TEST PERSON-F - not allocated office\n")
+        output = self.amity_object.print_unallocated()
+        self.assertEqual(output, ["\n TEST PERSON-A - not allocated office",
+                             "\n TEST PERSON-B - not allocated office",
+                             "\n TEST PERSON-C - not allocated office",
+                             "\n TEST PERSON-D - not allocated office",
+                             "\n TEST PERSON-E - not allocated office",
+                             "\n TEST PERSON-F - not allocated office"])
 
     # tests whether print_unallocated() prints(writes)
     # to file
@@ -446,11 +419,9 @@ class TestAmity(TestCase):
             name = "Test Person" + i
             self.amity_object.add_person(name, "STAFF")
 
-        with self.captured_output() as (out, err):
-            self.amity_object.print_room("KRYPTON")
+        result = self.amity_object.print_room("KRYPTON")
 
-            output = out.getvalue()
-            self.assertEqual(output, "\n TEST PERSON-A\n\n TEST PERSON-B\n\n TEST PERSON-C\n")
+        self.assertEqual(result, ["\n TEST PERSON-A", "\n TEST PERSON-B", "\n TEST PERSON-C"])
 
     # tests data validation by print_room
     def test_print_room_validates_room_names(self):
@@ -460,12 +431,8 @@ class TestAmity(TestCase):
         :return:
         """
 
-        with self.captured_output() as (out, err):
-
-            self.amity_object.print_room("kjlhfvg(*&^&%$89665544")
-            output = out.getvalue()
-
-            self.assertEqual(output, "\n Use letters and/or digits only for room names\n",
+        output = self.amity_object.print_room("kjlhfvg(*&^&%$89665544")
+        self.assertEqual(output, "\n Use letters and/or digits only for room names",
                              msg="Output not equal to expected error message")
 
     # tests room name verification by print_room
@@ -475,12 +442,8 @@ class TestAmity(TestCase):
         tests if print_room() validates room names
         :return:
         """
-        with self.captured_output() as (out, err):
-
-            self.amity_object.print_room("TEST ROOM")
-            output = out.getvalue()
-
-            self.assertEqual(output, "\n Room TEST ROOM does not exist in the system\n",
+        output = self.amity_object.print_room("TEST ROOM")
+        self.assertEqual(output, "\n Room TEST ROOM does not exist in the system",
                              msg="Output not equal to expected error message")
 
     # tests save state to default db
@@ -865,6 +828,153 @@ class TestAmity(TestCase):
 
         self.assertEqual("\n Person with name BEN MAN and ID " + result[0] + " was removed from the system",
                          self.amity_object.remove_person(result[0]))
+
+    # test if amity creates sessions file if
+    # it does not exist
+    def test_creation_of_sessions_file_by_class_amity(self):
+        """test_creation_of_sessions_file_by_class_amity():"""
+
+        sessions_filepath = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        sessions_filename = os.path.join(sessions_filepath, "text_files/sessions_file.txt")
+
+        temp_filepath = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        temp_filename = os.path.join(temp_filepath, "text_files/temp_sessions_file.txt")
+
+        if os.path.isfile(sessions_filename):
+
+            os.rename(sessions_filename, temp_filename)
+
+        self.assertFalse(os.path.isfile(sessions_filename))
+
+        self.amity_object = Amity()
+
+        self.assertTrue(os.path.isfile(sessions_filename))
+
+        os.remove(sessions_filename)
+
+        if not os.path.isfile(sessions_filename):
+
+            os.rename(temp_filename, sessions_filename)
+
+    # test if add_person() rejects names longer than 80 characters
+    def test_if_add_person_rejects_names_longer_than_80_characters(self):
+        """test_if_add_person_rejects_names_longer_than_80_characters"""
+
+        self.assertEqual("\n Names should not exceed 80 characters",
+                         self.amity_object.add_person("benbenbenbenbenbenbenbenbenbenben" +\
+                                                      "benbenbenbenbenbenbenbenbenbenben " +\
+                                                      " manmanmanmanmanmanmanmanmanmanman" +\
+                                                      "manmanmanmanmanman", "fellow", "y")[1])
+
+    # test if add_person() rejects role if not fellow or staff
+    def test_if_add_person_rejects_role_if_not_fellow_or_staff(self):
+        """test_if_add_person_rejects_role_if_not_fellow_or_staff():"""
+
+        self.assertEqual("\n role must be staff or fellow",
+                         self.amity_object.add_person("ben man", "programmer", "y")[1])
+
+    # test if add_person() gives message if staff is added without office
+    def test_if_add_person_gives_message_if_staff_is_added_without_office(self):
+        """test_if_add_person_gives_message_if_staff_is_added_without_office():"""
+
+        self.amity_object.create_room("office", ["valhalla"])
+
+        for item in ["-a", "-b", "-c", "-d", "-e", "-f"]:
+            name = "test person" + item
+            self.amity_object.add_person(name, "STAFF")
+
+        result = self.amity_object.add_person("ben man", "STAFF")
+        self.assertTrue(result[1].endswith("\n and was not allocated an office due to lack of space\n"))
+
+    # test if add_person() gives message if staff is added without office
+    def test_if_create_room_rejects_names_longer_than_35_characters(self):
+        """test_if_create_room_rejects_names_longer_than_35_characters():"""
+
+        result = self.amity_object.create_room("office", ["valhallahvgrwdq4swhvdht4tqwghfdvhdfrdsgx"
+                                                          "gfcasvgfxcsgxcsagfcxsaxfgsacxgfscaxfsafxcdf"
+                                                          "gsxcgfsacxgfsacxgfascgfxcsagffgsgxcfascgfxcsafggrxcagsrx"])
+
+        self.assertEqual(result[1],
+                         "\n Room names rejected due to format errors: 1 ,\n " \
+                         + "VALHALLAHVGRWDQ4SWHVDHT4TQWGHFDVHDFRDSGX"
+                         +  "GFCASVGFXCSGXCSAGFCXSAXFGSACXGFSCAXFSAFXCDF"
+                         +  "GSXCGFSACXGFSACXGFASCGFXCSAGFFGSGXCFASCGFXCSAFGGRXCAGSRX\n"
+                         )
+
+    # test confirm_specific_room_has_space() returns false when room doesn't exist
+    def test_confirm_specific_room_has_space_returns_false_when_room_doesnt_exist(self):
+        """test_confirm_specific_room_has_space_returns_false_when_room_doesnt_exist"""
+
+        self.assertFalse(self.amity_object.confirm_specific_room_has_space("valhalla"))
+
+    # test confirm_person_not_doubly_reallocated_to_same_room() for livingspace
+    def test_confirm_person_not_doubly_reallocated_to_same_room_works_for_livingspaces(self):
+        """test_confirm_person_not_doubly_reallocated_to_same_room_works_for_livingspaces()"""
+
+        self.amity_object.create_room("LIVINGSPACE", ["east"])
+        result1 = self.amity_object.add_person("ben man ", "FELLOW", "Y")
+
+        result2 = self.amity_object.confirm_person_not_doubly_reallocated_to_same_room(result1[0], "EAST")
+
+        self.assertTrue(result2)
+
+    # test if reallocate_person() validates room names
+    def test_reallocate_person_validates_room_names(self):
+        """test_reallocate_person_validates_room_names():"""
+
+        result = self.amity_object.reallocate_person("s-1q", "WEST&^&^%")
+        self.assertEqual(result, "\n Room name should consist of letters and/or digits only")
+
+    # test if reallocate_person() rejects room names greater than 40 characters
+    def test_reallocate_person_rejects_lengthy_room_names(self):
+        """test_reallocate_person_rejects_lengthy_room_names():"""
+
+        result = self.amity_object.reallocate_person("s-1q", "westwestwestwestwestwestwestwestwestwestwestwest")
+        self.assertEqual(result, "\n Room name should not exceed 40 characters")
+
+    # test if reallocate_person() validates person identifier
+    def test_reallocate_person_validates_person_identifier(self):
+        """test_reallocate_person_validates_person_identifier():"""
+
+        result = self.amity_object.reallocate_person("s-1hgghq", "WEST")
+        self.assertEqual(result, "\n Person identifier looks something like s-1a or f-2a\n" +\
+                                 "use the <get_person_identifier> command to get a valid ID")
+
+    # test if reallocate_person() confirms existence of person identifier
+    def test_reallocate_person_confirms_existence_of_person_identifier(self):
+        """test_reallocate_person_confirms_existence_of_person_identifier():"""
+
+        result = self.amity_object.reallocate_person("s-1k", "WEST")
+        self.assertEqual(result, "\n Person identifier does not exist in the system " + \
+                                 "\n use the <get_person_identifier> command to get a valid ID")
+
+    # test if reallocate_person() confirms existence of room  name
+    def test_reallocate_person_confirms_existence_of_room_name(self):
+        """test_reallocate_person_confirms_existence_of_room_name():"""
+
+        result1 = self.amity_object.add_person("ben man", "FELLOW")
+        result2 = self.amity_object.reallocate_person(result1[0], "WEST")
+
+        self.assertEqual(result2, "\n Room WEST does not exist in the system")
+
+    # test if reallocate_person() confirms existence of room  name
+    def test_reallocate_person_gives_message_when_room_is_full(self):
+        """test_reallocate_person_gives_message_when_room_is_full():"""
+
+        self.amity_object.create_room("livingspace", ["east"])
+
+        for item in ["-a", "-b", "-c", "-d", "-e", "-f"]:
+            name = "test person" + item
+            self.amity_object.add_person(name, "FELLOW", "Y")
+
+        result = self.amity_object.add_person("Test fellow", "FELLOW", "Y")
+        self.assertEqual(self.amity_object.reallocate_person(result[0], "EAST"),
+                         "\n Room EAST is fully occupied")
+
+
+
+
+
 
 
 
